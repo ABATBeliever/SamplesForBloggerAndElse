@@ -1,0 +1,14 @@
+//IEOpener v1.0
+//MIT License
+//by ABATBeliever
+#packopt version "Version.ini"	//バージョンの定義
+#packopt icon "icon.ico"		//アイコン
+#include "user32.as"			//ウィンドウスタイル変更コマンド用のinclude
+title "IE Opener v1.0"			//タイトル
+screen 0,200,50					//ウィンドウサイズ
+GetWindowLong hwnd, -16					//ウィンドウスタイル取得
+SetWindowLong hwnd, -16, stat - $20000	//ウィンドウスタイル変更(最小化・最大化の削除)
+cls 2									//色をグレーに
+axobj IE, "Shell.Explorer.2", 200, 50	//ActiveX呼び出し
+mes "失敗。\nおそらく対策されました。"	//ダメだったときはこれが見える
+ie->"Navigate" "about:<a href=\"about:blank\" target=\"_blank\">Click</a>"	//強制的に新規タブで「about:blank」を開かせる
