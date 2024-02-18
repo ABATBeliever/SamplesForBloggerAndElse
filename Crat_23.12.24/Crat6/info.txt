@@ -1,0 +1,30 @@
+□----------------□
+ | Crat Browser 5 |
+□----------------□
+
+【アプリ名称】Crat Browser
+
+【バージョン】5
+
+【 更 新 日 】2023/06/03
+
+【 動作環境 】・Windows10以上
+	      ・4GBメモリ
+              ・22.0 MBの領域
+              (仮想環境ではホスト・ゲストともに要件を満たす必要があります)
+
+【ファイル名】・Crat.exe 
+              ・WebView2Loader.dll
+
+【SHA-256 値】feea238bc8bb00d2ed96d336e1f4f748fa9bb5fd2b27555dcb7faab094cc8ed4
+              ファイルの値は、アプリ内の「Project」から確認できます
+              (または、"Powershell Get-FileHash -Algorithm SHA256 <ファイルパス>")
+
+【 再 配 布 】不可 (ソースを改造した場合は可能で、この場合ライセンスは変更可能です)
+
+【ライセンス】フリーウェア(WebView2Loader、HSP3等のライセンスに従ってください)
+・HSP3でWebViewを動作させるコードのページ | https://blog.goo.ne.jp/hiro239415/e/5041aec497e02427c2b123aef07977e3
+・WebView2Loader配布元(nuget)             | https://www.nuget.org/packages/Microsoft.Web.WebView2
+・HotSoupProcessor3                       | https://hsp.tv/
+
+2022-2023 CratBrowser
