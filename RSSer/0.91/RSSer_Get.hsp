@@ -1,0 +1,196 @@
+;RSSer v0.91
+;Made by ABATBeliever
+;MIT License
+
+;Includes
+#include "hspinets.as";https://hsp.moe/#hspinet
+#include "encode.as"
+#include "fileAlca.hsp"
+#include "shell32.as"
+#include "user32.as"
+#pack "dll2.pak"
+
+#uselib "gdi32.dll"
+#uselib "user32.dll"
+#func SetProcessDPIAware "SetProcessDPIAware"
+//SetProcessDPIAware
+font "FixedSys"
+
+;int
+AppName="RSSer"
+AppVer="v0.91"
+RSSTextGet=0
+RSSResultURL(0)=""
+RSSResultURLSet=0
+GUIArticle=""
+GUIArticleLink=""
+RSSErrPopup="警告！タイトルとリンクの数が一致しません。\n・RSSが破損している\n・非サポート形式(RSS1.0/RSS2.0/RSS0.9以外)\nなどの可能性があります。\nrss.txtの、以下の行数目のURLを削除してリトライしてください。\n>>"
+title AppName+" "+AppVer
+screen 0,600,700
+cls 1
+
+GUIList="RSSを読み込んでいます\n\n"
+pos 0,0:objsize 600,585:listbox Control,100,GUIList
+hListbox = objinfo(stat, 2)//oncmd用
+
+mesboxtest=""
+pos 0,664:mesbox mesboxtest,500,34,0,0
+
+GUIArticleLinkLast=0
+GUIArticleLinkVar=""
+
+;main
+if FileCheck("hspinets.dll")=1{bcopy "dll2.pak",""+dir_cur+"\\hspinets.dll"}
+
+if FileCheck("rss.txt")=1{
+dialog "定義ファイルがない。":end
+}
+
+netinit
+if stat : dialog "インターネットに接続できませんでした。\n\n・インターネットに接続されていない。\n・ファイアーウォールまたはグループポリシー\n・OSなどの仕様変更\n\n終了。" :goto *RSSerEND
+goto *Gets
+
+*Gets
+objprm 0,GUIList
+Nbuf=""
+notesel Nbuf
+noteload "rss.txt"
+if RSSTextGet>(notemax-1){goto *GUIs}
+noteget URL,RSSTextGet
+
+if URL="[EOF]":goto *GUIs
+RSSResultURL(RSSTextGet)=URL
+RSSTextGet=RSSTextGet+1//毎回増える
+neturl URL
+netrequest_get "";Blank
+ReturnCount=0;タイムアウト
+res=1
+goto *Returncheck
+
+*Returncheck
+ReturnCount=ReturnCount+1
+if ReturnCount=255{
+GUIList=GUIList+"FAIL ["+RSSTextGet+"] ERR(TimeOut255) URL:"+URL+"\n"
+netinit
+goto *Gets
+}
+netexec res
+if res > 0 : goto *OK
+if res < 0 : goto *Fail
+await 1
+goto *Returncheck
+
+*Fail
+neterror estr
+GUIList=GUIList+"FAIL ["+RSSTextGet+"] ERR("+estr+") URL:"+URL+"\n"
+netinit
+goto *Gets
+	
+*OK
+sdim buf, netgetv_size()
+netgetv_data buf
+NBuf=utf8n2sjis(buf)
+RSSResultData((RSSTextGet)-1)=utf8n2sjis(buf)//UTF
+
+GUIList=GUIList+"Get ["+RSSTextGet+"] URL:"+URL+"\n"
+
+RSSArticleNameFlag=0
+RSSArticleLinkFlag=0
+tmp=RSSResultData((RSSTextGet)-1)
+tmp = Nbuf
+tmp=strtrim(tmp, 3, '\t')//TABをなくす
+tmp=strtrim(tmp, 3)//空白をなくす
+//改行コードを消す
+tmp=strtrim(tmp, 3, 0x0A)	//LF
+tmp=strtrim(tmp, 3, 0x0D)	//CR
+//"<"と">"で囲まれた文字を小文字に変換
+flag=0
+repeat strlen(tmp)
+	x=peek(tmp,cnt)
+	if x='<' : flag=1 : continue
+	if x='>' : flag=0 : continue
+	if flag {
+		if x>='A' & x<='Z' : x+=0x20 : poke tmp,cnt,x	//大文字は0x20を足すと小文字になる
+	}
+loop
+
+//本編
+p=0 : flag=0 : get=""
+repeat//タイトル
+	if flag {
+		res=instr(tmp,p,"</title>")
+		if res<0 : break
+		get=strmid(tmp,p,res)
+		if RSSArticleNameFlag=0{
+			RSSArticleNameFlag=1
+			}else{
+			if GUIArticle!=""{GUIArticle=GUIArticle+"\n"+get}else{GUIArticle=get}
+			}
+		p+=res+8
+		flag=0
+	} else {
+		res=instr(tmp,p,"<title>")
+		if res<0 : break
+		p+=res+7
+		flag=1
+	}
+loop
+
+p=0 : flag=0 : get=""
+repeat//リンク
+	if flag {
+		res=instr(tmp,p,"</link>")
+		if res<0 : break
+		get=strmid(tmp,p,res)
+		if RSSArticleLinkFlag=0{
+			RSSArticleLinkFlag=1
+		}else{
+			if GUIArticleLink!=""{GUIArticleLink=GUIArticleLink+"\nh"+get}else{GUIArticleLink="h"+get}
+			RSSResultURLp(RSSResultURLSet)="h"+get:RSSResultURLSet=RSSResultURLSet+1
+		}
+		p+=res+8
+		flag=0
+	} else {
+		res=instr(tmp,p,"<link>")
+		if res<0 : break
+		p+=res+7
+		flag=1
+	}
+loop
+
+split GUIArticle, "\n", tmp1
+split GUIArticleLink, "\n", tmp2
+if length(tmp1)!=length(tmp2){dialog RSSErrPopup+str(RSSTextGet):goto *RSSerEND}
+
+goto *Gets
+
+*GUIS
+wait 100
+await 100
+objprm 0,GUIArticle
+
+split GUIArticle, "\n", tmp1
+split GUIArticleLink, "\n", tmp2
+if length(tmp1)!=length(tmp2){dialog RSSErrPopup+str(RSSTextGet):goto *RSSerEND}else{tmp="OK: "+length(tmp1):objprm 1,tmp}
+
+oncmd gosub *oncmdcheck,$111
+Control=0
+pos 500,664:objsize 100,35:button gosub "見る",*Open
+stop
+
+*oncmdcheck
+if lparam=hListbox{gosub *Analysis}
+return
+
+*Analysis
+if Control<0{return}
+title str(Control)
+objprm 1,RSSResultURLp(Control)
+return
+
+*Open
+//ShellExecuteW 0, "open", "msedge", RSSResultURLp(Control), 0, 10
+return
+
+*RSSerEND
+end

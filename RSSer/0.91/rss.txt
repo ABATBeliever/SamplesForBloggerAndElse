@@ -1,0 +1,13 @@
+https://www.metro.tokyo.lg.jp/rss/index.rdf
+https://rocketnews24.com/feed/
+https://news.yahoo.co.jp/rss/topics/top-picks.xml
+https://www.nhk.or.jp/rss/news/cat0.xml
+https://rss.itmedia.co.jp/rss/2.0/itmedia_all.xml
+http://www.asahi.com/rss/asahi/newsheadlines.rdf
+https://toyokeizai.net/list/feed/rss
+https://bunshun.jp/list/feed/rss
+https://www.lifehacker.jp/feed/index.xml
+https://www.j-cast.com/index.xml
+https://gigazine.net/news/rss_2.0/
+https://pc.watch.impress.co.jp/data/rss/1.0/pcw/feed.rdf
+[EOF]
