@@ -1,0 +1,29 @@
+#include "hsp3_64.as"//x64
+#uselib "gdi32.dll"//DPI関連
+#uselib "user32.dll"
+#func SetProcessDPIAware "SetProcessDPIAware"
+SetProcessDPIAware//高DPI
+screen 0,250,100//スクリーン
+font "FixedSys"//高DPIのためフォント変える必要あり
+title "ｺﾞﾏﾏﾖ"
+word="":result="Null"//変数初期化
+pos 0,0:input word,200,50							//UI 1
+pos 200,0:objsize 50,50:button gosub "判定",*think	//UI 2
+pos 0,50:objsize 250,50:mesbox result				//UI 3
+cut=1//切り出す文字
+stop
+*think
+sdim buf1//バッファ確保
+sdim buf2
+LastWord=""//比較用
+Gomamayo=0//ゴママヨ判定フラグ
+repeat
+	cnvstow buf1,word//ANSI→Unicode
+	memcpy buf2,buf1,cut*2,,cnt*2//分ける
+	Nowword=cnvwtos(buf2)//Unicode→ANSI
+	if NowWord=""{break}//なくなったら抜ける
+	if NowWord=LastWord{Gomamayo=Gomamayo+1}//連続したらフラグ
+	LastWord=NowWord//覚える
+loop
+if Gomamayo!=0{objprm 2,str(Gomamayo)+" のゴママヨがありました"}else{objprm 2,"ゴママヨじゃない"}
+return
