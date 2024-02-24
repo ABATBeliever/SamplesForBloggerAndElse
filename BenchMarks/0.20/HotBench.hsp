@@ -1,0 +1,571 @@
+#epack "loop.png"
+title "HotBench - Loading"
+font "MS UI Gothic",15,0
+Ver="v0.20"
+#define ctype pek(%1,%2)  ((%1(%2/8)>>(%2\8))&1)
+#define ctype pok1(%1,%2) %1(%2/8)|=1<<(%2\8)
+#uselib "winmm.dll"
+#cfunc timeGetTime "timeGetTime"
+#include "modTaskDialog.hsp"
+#include "kernel32.as"
+	CreateMutex 0, 0, "HOTBENCH_RUN_CHECKSUM_MUTEX"
+	GetLastError
+	if stat = $B7 {dialog "This Bench seem to Running"}
+	dim SYSTEM_POWER_STATUS, 3
+
+#include "user32.as"
+
+#func SetLayered "SetLayeredWindowAttributes" int , int , int , int
+	
+#module
+	#defcfunc modTasks str modTaskTitle, str modTaskName, str modTaskDismiss, str modTaskNames
+	dwFlags@mtd = 0
+	dwFlags@mtd = TDF_DISALLOW_DIALOG_CANCELLATION
+	DialogVistaEx modTaskTitle,modTaskName,modTaskDismiss,"",modTaskNames, 3, 4
+	switch stat
+		case 101 : modTaskSelect="1" : swbreak
+		case 102 : modTaskSelect="2" : swbreak
+		case 103 : modTaskSelect="3" : swbreak
+		case 104 : modTaskSelect="4" : swbreak
+		case 2 : modTaskSelect="0" : swbreak//Cancel
+		default : dialog "ERR":end
+	swend
+	return modTaskSelect
+	
+	#deffunc WindowSet
+		GetWindowLong hwnd, -16
+		SetWindowLong hwnd, -16, stat - $20000
+		GetWindowLongA hwnd , -20
+		SetWindowLongA hwnd , -20 , stat | 0x00080000
+	return 0
+
+	#deffunc TMPRandom
+	tmp@=""
+	repeat 1024
+		tmp@=tmp@+str(rnd(9999))+str(rnd(9999))+str(rnd(9999))+str(rnd(9999))+str(rnd(9999))
+	loop
+	return
+	
+#global
+
+//Language
+modTaskSelect=modTasks("HotBench / Made by ABATBeliever [Beta]","Which language do you want to use?","If your OS isn't the Japanese ver of Windows10 or later, please select English.","English\nJapanese\nExit")
+if modTaskSelect="1" {goto *LangEnglish}
+if modTaskSelect="2" {goto *LangJapan}
+if modTaskSelect="3" {end}
+if modTaskSelect="4" {end}
+if modTaskSelect="0" {end}
+end
+
+*LangEnglish
+fonts="Consolas"
+
+char0="Sorry,English x"//Welcome to HotBench!"
+char1="This benchmark is HSP3 and was created by ABATBeliever."
+char2="Your Name(by Windows)"
+char3="CPU"
+char4="Core(can use)"
+char5="Memory"
+char6="Using"
+char7="System"
+char8="RunningTime:"
+char9="License (Not intended for use in the EU ; EU countries and UK residents should exit)"
+char10="HotBench "+Ver+"  by ABATBeliever\n\nHotBench is free software; the source code is available on Github and any modifications are welcome.\nHowever, ABATBeliever cannot be held responsible for any problems that may occur. Please understand.\nBy proceeding to the next screen, you agree to be bound by the terms of this agreement.\n\nURL:<nul>"
+char11="Agree"
+char12="Battery powered"
+char13="Charging"
+char14="AC power status"
+char15="High (66% or more)" 
+char16="Low (less than 33%)"
+char17="Middle (33-65%)"
+char18="Dangerous (less than 5%)"
+char19="Charging"
+char20="Battery not recognized"
+char21="Battery status"
+char22="Battery level"
+char23="[Unknown/charging]"
+char24="Battery remaining duration"
+char25="Battery Duration on Full Charge"
+char26="Skip All and Measure All"
+char27="In this section, you will perform prime number computation Test. \nThe load is constant. \nIf you have a GPU or Graphics Board, it will be used if it is recognizable. \nIf it looks like it has frozen, please leave it alone."
+char28="Stop"
+char29="Run"
+char30="Try"
+char31="Highest Value:"
+char32="Total:"
+char33="Average:"
+char34="Minimum Value:"
+char35="Score (difference from fastest)"
+char36="This score should be "
+char37="Smaller"
+char38="Greater"
+char39="."
+char40="In this section, you will perform calculation Test of the arc degree method. \nFor every 0.000005 degrees, find sin, cos, tan.\nThe load is constant. \nIf you have a GPU or Graphics Board, it will be used if it is recognizable. \nIf it seems to freeze, please leave it alone."
+char41="In this section you will perform practical drawing Test. \nHSP3 sample code will also be used. \n loads are not always constant. \n If you have a GPU or Graphics Board, it will be used if i is recognizable. \nIf it looks like it has frozen, please leave it alone."
+char42="back"
+
+char_day="Day"
+char_hour="Hour"
+char_min="Min"
+char_sec="Sec"
+
+chare0="Calculation Test"
+chare1="Arc calc Test"
+chare2="Drawing Test"
+
+char_day="Day"
+char_hour="hour"
+char_min="min"
+char_sec="sec"
+
+goto *welcome
+
+*LangJapan
+fonts="メイリオ"
+
+char0="HotBenchへようこそ！"
+char1="このソフトはHSP3で、ABATBelieverによって作成されました！"
+char2="Windowsが認識しているユーザ名"
+char3="CPUについて"
+char4="コア(が認識されました)"
+char5="メモリについて"
+char6="メモリ使用率"
+char7="システム"
+char8="起動時間:"
+char9="ライセンス (EU圏及びイギリスでの使用は想定しておりません)"
+char10="HotBench "+Ver+"  by ABATBeliever\n\nHotBenchはフリーソフトです。Githubでソースコードは公開されており、いかなる改造も歓迎します。\n但し、どんな問題が発生した場合でもABATBelieverは責任をとれません。ご了承ください。\n次の画面に進んだ時点で、同意したものとみなします。\n\n配布元:<nul>"
+char11="同意&&続行"
+char12="バッテリー駆動"
+char13="充電中"
+char14="AC電源の状態"
+char15="多い(66%以上)"
+char16="少ない(33%未満)"
+char17="中間(33～65%)"
+char18="危険(5%未満)"
+char19="充電中"
+char20="バッテリー認識不可"
+char21="バッテリー残量の状態"
+char22="バッテリー残量"
+char23="[不明/充電中]"
+char24="バッテリー残り持続時間"
+char25="フル充電時のバッテリー持続時間"
+char26="これが表示された場合エラーです"
+char28="休止中"
+char29="実行中"
+char30="試行"
+char31="最高値:"
+char32="合計値:"
+char33="平均値:"
+char34="最小値:"
+char35="スコア"
+char36="\nこのDispersionスコアは"
+char37="小さい"
+char38="大きい"
+char39="程よい(あなたのデバイス専用)\nComparisonスコアは小さい程良い。(汎用)"
+char42="戻る"
+char43="実行したいベンチ内容とカスタム..."
+char44="\nこのベンチ"
+char45="(既定:"
+char46="回)は、素数を見つけ出す処理を行い、速度をはかります。"
+char47="回)は、サイン・コサイン・タンジェントをそれぞれ計算し、その速度をはかります。"
+char48="回)は、各種Win32APIや描画,画像処理等、HSPのゲーム類で必要になる内容の処理を行い、\nその速度をはかります"
+char49="開始"
+char50="値は2以上を推奨します。\n1の場合:一部のスコアを集計できません\n0の場合:スキップされます"
+
+char_day="日"
+char_hour="時間"
+char_min="分"
+char_sec="秒"
+
+chare0="素数計算試験"
+chare1="弧度法計算試験"
+chare2="実用描画試験1"
+chare3="実用描画試験2"
+
+goto *welcome
+/////////////////////////////////////////////////////////////////////
+*welcome
+title char0
+WindowSet
+font fonts, 20:mes char0
+font fonts, 12:mes char1//WelcomeText
+
+mes "\nOS:"
+boxtext=sysinfo(0):mesbox boxtext,640,22,0
+dump=boxtext
+
+mes char2
+boxtext=""+sysinfo(1)+"/"+sysinfo(2):mesbox boxtext,640,22,0
+dump=dump+"\n"+boxtext
+
+if sysinfo(16)=386{boxtext="Intel 80386"
+}else:if sysinfo(16)=486{boxtext="Intel 80486"
+}else:if sysinfo(16)=586{boxtext="Intel Pentium/Core/Core I"
+}else:if sysinfo(16)=2200{boxtext="Intel Itanium"
+}else:if sysinfo(16)=8664{boxtext="Intel 64/AMD 64"
+}else{boxtext="UNKNOWN CPU"+sysinfo(16)}
+boxtext=boxtext+" | "+sysinfo(17)+char4
+mes char3
+mesbox boxtext,640,22,0
+dump=dump+"\n"+boxtext
+
+mes char5
+boxtext=""+char6+": "+sysinfo(33)+" %":mesbox boxtext,640,22,0
+dump=dump+"\n"+boxtext
+
+mes char7
+GetTickCount
+boxtext= ""+char8+" "+(stat / 86400000)+char_day+" /"
+boxtext=boxtext+ ""+(stat / 3600000 \ 24)+char_hour+" /"
+boxtext=boxtext+ ""+(stat / 60000 \ 60)+char_min+" /"
+boxtext=boxtext+ ""+(stat / 1000 \ 60)+char_sec+"\n"
+
+GetSystemPowerStatus varptr (SYSTEM_POWER_STATUS)
+
+if (peek (SYSTEM_POWER_STATUS.0, 0))=0{tmp=char12
+}else:if (peek (SYSTEM_POWER_STATUS.0, 0))=1{tmp=char13
+}else{tmp="?"}
+boxtext=boxtext+char14+": "+tmp+"\n"
+
+if (peek (SYSTEM_POWER_STATUS.0, 1))=1{tmp=char15
+}else:if (peek (SYSTEM_POWER_STATUS.0, 1))=2{tmp=char16
+}else:if (peek (SYSTEM_POWER_STATUS.0, 1))=0{tmp=char17
+}else:if (peek (SYSTEM_POWER_STATUS.0, 1))=4{tmp=char18
+}else:if (peek (SYSTEM_POWER_STATUS.0, 1))=8{tmp=char19
+}else:if (peek (SYSTEM_POWER_STATUS.0, 1))=128{tmp=char20
+}else{tmp="? ('SYSTEM_POWER_STATUS.0, 1'="+peek (SYSTEM_POWER_STATUS.0, 1)+")"}
+boxtext=boxtext+char21+": "+tmp+"\n"
+
+boxtext=boxtext+char22+": "+peek (SYSTEM_POWER_STATUS.0, 2)+" %\n"
+
+if SYSTEM_POWER_STATUS.1 > 0{tmp=SYSTEM_POWER_STATUS.1}else{tmp=char23}
+boxtext=boxtext+char24+": "+tmp+char_sec+"\n"
+
+if SYSTEM_POWER_STATUS.2 > 0{tmp=SYSTEM_POWER_STATUS.2}else{tmp=char23}
+boxtext=boxtext+char25+": "+tmp+char_sec+""
+mesbox boxtext,640,80,0
+dump=dump+"\n"+boxtext
+
+mes "\n"+char9
+boxtext=""+char10:mesbox boxtext,640,90,0
+
+pos 270,455:button gosub char11,*agree
+stop
+
+*agree
+if skip="1"{dump=dump+"\nSkip:Yes"}else{dump=dump+"\nSkip:No"}
+cls 0
+
+Bench1Count=22
+Bench2Count=10
+Bench3Count=5
+Bench4Count=10
+
+font fonts, 20:mes char43+"\n"
+
+font fonts, 12:mes chare0+char44+char45+Bench1Count+char46
+input Bench1Count,100,20
+
+font fonts, 12:mes "\n"+chare1+char44+char45+Bench2Count+char47
+input Bench2Count,100,20
+
+font fonts, 12:mes "\n"+chare2+char44+char45+Bench3Count+char48
+input Bench3Count,100,20
+
+font fonts, 12:mes "\n"+chare3+char44+char45+Bench3Count+char48
+input Bench4Count,100,20
+
+mes "\n"+char50
+pos 270,455:button gosub char49,*Bench1
+stop
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+*Bench1
+n=20000000
+max(1)=0
+min(1)=0
+sum(1)=0
+avg(1)=0
+score1="?"
+if Bench1Count=0{goto *Bench2}
+cls 0
+title "HotBench  - Prepare"
+
+wait 200
+await 200
+
+dump=dump+"\n\n1/n"
+	
+repeat Bench1Count
+	title "1/n "+chare0+" | "+char28+"("+(cnt+1)+") | "+char31+max(1)+" "+char34+min(1)+" "+char32+sum(1)+" "+char33+avg(1)
+	wait 100
+	await 100
+	title "1/n "+chare0+" | "+char29+"("+(cnt+1)+") | "+char31+max(1)+" "+char34+min(1)+" "+char32+sum(1)+" "+char33+avg(1)
+	dim map,n/8+1
+	map(0)=3
+	t=timegettime()
+	for i,0,n,1
+	if pek(map,i)=0{
+	for j,i+i,n,i : pok1(map,j) : next
+	}
+	next
+	raw=(timegettime()-t)
+	if raw>max(1){max(1)=raw}
+	if raw<min(1){min(1)=raw}
+	if cnt=0{min(1)=raw}
+	mes ""+char30+(cnt+1)+"/"+Bench1Count+" : "+(raw*1.0)+"ms"
+	sum(1)=sum(1)+(timegettime()-t)
+	avg(1)=(sum(1)/(cnt+1))
+	dump=dump+"\nRUN"+(cnt+1)+"/20:"+raw
+loop
+
+score1="DispersionScore:"+((sum(1)-(min(1)*Bench1Count))/Bench1Count)+"p\nComparisonScore:"+(sum(1)/Bench1Count)+"p"+"\n(Round:"+Bench1Count+")"
+dump=dump+"\nScore\n"+score1+"\nMAX:"+(max(1)*1.0)+"\nMIN:"+(min(1)*1.0)+"\nSUM:"+(sum(1)*1.0)+"\nAVG:"+(avg(1)*1.0)
+title "1/n "+chare0+" | "+char31+max(1)+" "+char34+min(1)+" "+char32+sum(1)+" "+char33+avg(1)
+
+goto *Bench2
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+*Bench2
+max(2)=0
+min(2)=0
+sum(2)=0
+avg(2)=0
+score2="?"
+if Bench2Count=0{goto *Bench3}
+cls 0
+title "HotBench  - Prepare"
+
+wait 200
+await 200
+dump=dump+"\n\n2/n"
+	
+repeat Bench2Count
+	title "2/n "+chare1+" | "+char28+"("+(cnt+1)+") | "+char31+max(2)+" "+char34+min(2)+" "+char32+sum(2)+" "+char33+avg(2)
+	wait 100
+	await 100
+	t=timegettime()
+	title "2/n "+chare1+" | "+char29+"("+(cnt+1)+") | "+char31+max(2)+" "+char34+min(2)+" "+char32+sum(2)+" "+char33+avg(2)
+
+	repeat 72000000
+        kaku = 0.000005 * cnt
+        rad = kaku * 3.14151 / 180.0
+        ss = sin(rad)
+        cc = cos(rad)
+        tt = tan(rad)
+    loop
+
+	raw=(timegettime()-t)
+
+	if raw>max(2){max(2)=raw}
+	if raw<min(2){min(2)=raw}
+	if cnt=0{min(2)=raw}
+	
+	mes ""+char30+(cnt+1)+"/"+Bench2Count+" : "+(raw*1.0)+"ms"
+	sum(2)=sum(2)+(timegettime()-t)
+	avg(2)=(sum(2)/(cnt+1))
+	dump=dump+"\nRUN"+(cnt+1)+"/"+Bench2Count+":"+raw
+loop
+
+score2="DispersionScore:"+((sum(2)-(min(2)*Bench2Count))/Bench2Count)+"p\nComparisonScore:"+(sum(2)/Bench2Count)+"p"+"\n(Round:"+Bench2Count+")"
+dump=dump+"\nScore\n"+score2+"\nMAX:"+(max(2)*1.0)+"\nMIN:"+(min(2)*1.0)+"\nSUM:"+(sum(2)*1.0)+"\nAVG:"+(avg(2)*1.0)
+title "2/n "+chare1+" | "+char31+max(2)+" "+char34+min(2)+" "+char32+sum(2)+" "+char33+avg(2)
+
+cls 0
+goto *Bench3
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+*Bench3
+max(3)=0
+min(3)=0
+sum(3)=0
+avg(3)=0
+score3="?"
+if Bench3Count=0{goto *Bench4}
+cls 0
+title "HotBench  - Prepare"
+
+wait 200
+await 200
+dump=dump+"\n\n3/n"
+	
+repeat Bench3Count
+	title "3/n "+chare2+" | "+char28+"("+(cnt+1)+") | "+char31+max(3)+" "+char34+min(3)+" "+char32+sum(3)+" "+char33+avg(3)
+	wait 500
+	await 500
+	t=timegettime()
+	title "3/n "+chare2+" | "+char29+"("+(cnt+1)+") | "+char31+max(3)+" "+char34+min(3)+" "+char32+sum(3)+" "+char33+avg(3)
+
+	repeat 1024
+		FlashWindow hwnd, 1
+	loop
+	
+	//hsv.hsp
+	repeat 5
+	wait 10
+	await 10
+	cls 0
+	y=0
+		repeat 256
+		x=0:px=2
+			repeat 256
+				hsvcolor y,cnt,255
+			boxf x,y,x+px,y
+			x+=px
+			loop
+		y+
+		loop
+	loop
+
+
+randomize
+buffer 3
+picload "loop.png"
+
+	screen 0,640,480,0
+	WindowSet
+	gmode 0,640,200
+	
+	tx.0=0:ty.0=0
+	tx.1=640:ty.1=0
+	tx.2=640:ty.2=200
+	tx.3=0:ty.3=200
+
+	repeat 640
+		redraw 0
+		color 64,64,64:boxf
+		n = cnt&127:if n>=64 : n=63-(n-64)
+		x.0=n+100
+		y.0=n/2+150
+		x.1=540-n
+		y.1=n/2+150
+		x.2=n+540
+		y.2=330-(n/2)
+		x.3=100-n
+		y.3=330-(n/2)
+		color 255,0,0:gsquare -1,x,y
+		gsquare 3,x,y,tx,ty
+		redraw 1
+		await 12
+	loop
+
+repeat 512
+	clrobj
+	screen 0,640,480
+	SetLayered hwnd , 0 , 50*255/100 , 1
+loop
+
+	WindowSet
+	cls 0
+	raw=(timegettime()-t)
+
+	if raw>max(3){max(3)=raw}
+	if raw<min(3){min(3)=raw}
+	if cnt=0{min(3)=raw}
+
+	sum(3)=sum(3)+(timegettime()-t)
+	avg(3)=(sum(3)/(cnt+1))
+	dump=dump+"\nRUN"+(cnt+1)+"/"+Bench3Count+":"+raw
+loop
+
+
+score3="DispersionScore:"+((sum(3)-(min(3)*Bench3Count))/Bench3Count)+"p\nComparisonScore:"+(sum(3)/Bench3Count)+"p"+"\n(Round:"+Bench3Count+")"
+dump=dump+"\nScore\n"+score3+"\nMAX:"+(max(3)*1.0)+"\nMIN:"+(min(3)*1.0)+"\nSUM:"+(sum(3)*1.0)+"\nAVG:"+(avg(3)*1.0)
+title "3/n "+chare2+" | "+char31+max(3)+" "+char34+min(3)+" "+char32+sum(3)+" "+char33+avg(3)
+
+cls 0
+goto *Bench4
+
+*Bench4
+max(4)=0
+min(4)=0
+sum(4)=0
+avg(4)=0
+score4="?"
+if Bench4Count=0{goto *Bench5}
+cls 0
+title "HotBench  - Prepare"
+wait 200
+await 200
+dump=dump+"\n\n4/n"
+	
+repeat Bench4Count
+
+	title "4/n "+chare2+" | "+char28+"("+(cnt+1)+") | "+char31+max(4)+" "+char34+min(4)+" "+char32+sum(4)+" "+char33+avg(4)
+	wait 500
+	await 500
+	t=timegettime()
+	title "4/n "+chare2+" | "+char29+"("+(cnt+1)+") | "+char31+max(4)+" "+char34+min(4)+" "+char32+sum(4)+" "+char33+avg(4)
+	
+	cls 0
+	wait 200
+	await 200
+
+	tmp=""
+	d=0
+
+TMPRandom
+pos 0,0:mes "This is bench Test:"+str(tmp)
+	
+repeat 100
+	pos (1+rnd(599)),(1+rnd(599)):TMPRandom:button gosub tmp,*TakeBackGosub
+	pos (1+rnd(599)),(1+rnd(599)):TMPRandom:chkbox tmp,d
+	pos (1+rnd(599)),(1+rnd(599)):TMPRandom:input tmp,(1+rnd(499)),(1+rnd(49))
+	pos (1+rnd(599)),(1+rnd(599)):TMPRandom:listbox d, (1+rnd(199)), tmp
+	TMPRandom:d=d+tmp
+loop
+clrobj
+
+	raw=(timegettime()-t)
+
+	if raw>max(4){max(4)=raw}
+	if raw<min(4){min(4)=raw}
+	if cnt=0{min(4)=raw}
+
+	sum(4)=sum(4)+(timegettime()-t)
+	avg(4)=(sum(4)/(cnt+1))
+	dump=dump+"\nRUN"+(cnt+1)+"/"+Bench4Count+":"+raw
+loop
+
+
+score4="DispersionScore:"+((sum(4)-(min(4)*Bench4Count))/Bench4Count)+"p\nComparisonScore:"+(sum(4)/Bench4Count)+"p"+"\n(Round:"+Bench4Count+")"
+dump=dump+"\nScore\n"+score4+"\nMAX:"+(max(4)*1.0)+"\nMIN:"+(min(4)*1.0)+"\nSUM:"+(sum(4)*1.0)+"\nAVG:"+(avg(4)*1.0)
+title "4/n "+chare2+" | "+char31+max(4)+" "+char34+min(4)+" "+char32+sum(4)+" "+char33+avg(4)
+cls 0
+goto *Bench5
+
+*Bench5
+goto *TotalScore
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+*TotalScore
+tmp1=(((sum(1)-(min(1)*Bench1Count))+(sum(2)-(min(2)*Bench2Count))+(sum(3)-(min(3)*Bench3Count))+(sum(4)-(min(4)*Bench4Count)))/4)
+tmp2=(((sum(1)/Bench1Count)+(sum(2)/Bench2Count)+(sum(3)/Bench3Count)+(sum(4)/Bench4Count))/4)
+TotalScores="DispersionTotalScore:"+tmp1+"p\nComparisonTotalScore:"+tmp2+"p"
+dump=dump+"\n\nTotalScore\n\n"+TotalScores
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+*Finish
+cls 0
+title "HotBench - Finish"
+boxtext="log:\n\n"+dump:mesbox boxtext,640,250,0
+boxtext="DispersionScore - Local\nComparisonScore - Common\n\n<1>\n"+score1+"\n<2>\n"+score2+"\n<3>\n"+score3+"\n<4>\n"+score4+"\n\nTotal\n"+TotalScores:mesbox boxtext,640,200,0
+pos 270,455:button gosub char42,*returns
+dialog "HB"+Ver+".log" , 17 , "Name(YouCanDisagree)"
+if stat != 0{bsave refstr,dump:dialog "OK\n\n("+refstr+")"}
+stop
+
+*returns
+cls 0
+clrobj
+skip=0
+screen 0,640,480
+dump=""
+goto *welcome
+
+*TakeBackGosub
+return

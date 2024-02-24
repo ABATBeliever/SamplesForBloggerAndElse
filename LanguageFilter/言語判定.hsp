@@ -1,0 +1,3 @@
+#include "kernel32.as"
+GetUserDefaultLCID
+if stat=1041{mes "Japanese"}else{mes stat}

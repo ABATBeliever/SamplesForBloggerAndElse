@@ -1,0 +1,7 @@
+#include "user32.as"
+screen 0,ginfo(20),ginfo(21),0
+gsel 0,2
+width 300,20
+GetWindowLong hwnd, -16
+SetWindowLong hwnd, -16, stat | $10000 | $40000
+title "‘åØ‚Èî•ñ‚ÍŒ©‚¹‚È‚¢‚¼["
