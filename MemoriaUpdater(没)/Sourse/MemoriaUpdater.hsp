@@ -1,0 +1,75 @@
+//MemoriaUpdater Technical Preview
+//c2024 ABATBeliever
+#include "hspinets.as"
+#module
+	#deffunc Write str p1
+		buf@=buf@+p1
+		objprm 0,buf@
+	return
+#global
+screen 0,640,300
+title "Memoria Updater"
+ver="153"
+netinit
+TargetURL="https://abatbeliever.github.io/InternetStroller/update/0.upd"//リスト
+buf="InternetStroller Memoria Updater\n\n"
+mesbox buf,640,250,1
+font "",20
+objenable 0,0
+if stat:Write "ｲﾝﾀｰﾈｯﾄ接続に失敗したため中止 - Internet Disconnected":stop
+Write "Get:	"+TargetURL+""
+neturl TargetURL
+netrequest_get ""
+*main
+netexec res
+Write "."
+if res > 0 : goto *q
+if res < 0 : goto *bad
+await 100
+goto *main
+*bad
+neterror estr
+Write "\nERROR "+estr+"\nリストが取得できません。 - Failed to get List."
+stop
+*q
+Write "\nDownloaded\n"
+sdim list, netgetv_size()
+netgetv_data list
+Write "Size:	"+str(netgetv_requestsize())+"B\n"
+notesel list
+if notemax<2{Write "不正です。リストが破損しています。 - List Format ERROR.":stop}
+noteget tmp,0
+if tmp=ver{Write "最新です。更新の必要はありません。 - Latest Version"}else{Write "最新版が利用できます。 - New Version Avaliable"}
+objsize 640,50
+button "更新 - Update",*dlstart
+stop
+*dlstart
+objenable 1,0
+Write "\n更新を開始します - Start Update\n\n"
+t=0
+*Getmain
+t=t+1
+if t=notemax{Write "\n完了しました。 - Success":stop}
+noteget tmp,int(t)
+split tmp,"!",tmp
+if stat!=2{Write "問題が発生し、中止しました。 - List Format ERROR.":stop}
+TargetURL=tmp(1)
+save=tmp(0)
+Write "[Get] "+tmp(0)+":	"+TargetURL
+neturl TargetURL
+netrequest_get ""
+*main2
+netexec res
+Write "."
+if res > 0 : goto *s
+if res < 0 : goto *bad
+await 100
+goto *main2
+*s
+Write "\nDownloaded\n"
+sdim getData, netgetv_size()
+netgetv_data getData
+Write "Size:	"+str(netgetv_requestsize())+"B\n\n"
+bsave save, getData, netgetv_requestsize()
+tmp=""
+goto *Getmain
