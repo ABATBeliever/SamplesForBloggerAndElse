@@ -1,0 +1,169 @@
+notesel buffers
+RegesterVar1="****-******-****-****-**"
+screen 0,320,100
+sdim code,1024
+x=0
+digkey=""+sysinfo(0)+sysinfo(1)+sysinfo(2)+sysinfo(16)+sysinfo(17)+dir_exe
+repeat strlen(digkey)
+	x = peek( digkey , cnt ) + 3
+	if x > 255 :x -= 255
+		poke code , cnt , x
+loop
+digkey=code
+exist "regester.key"
+
+if strsize=-1{goto *start}
+noteload "regester.key"
+noteget tmp,0
+if tmp=digkey{goto *AllOK}
+goto *start
+
+*start
+title "アクティベートコードを入力..."
+input RegesterVar1,300,20
+font "",12
+mes "このツールを使用するには、アクティベートが必須です。\n入手して認証してください。\nコードは以下の形式です。\n\n・NNNN-NNNNNN-NNNN-NNNN-NN\n・区切りは「-」を使用すること"
+pos 250,70:button "Regester",*regester					//0A17-Akq9(m-PQSw-1237-D8(永続コード)
+stop													//0000-AAAAAA-0000-0000-pQ
+*regester												//16進数が3で割り切れるかどうか
+objenable 0,0											//正当な記号
+objenable 1,0											//16進数が日付か(ただしPQSwの場合無視)
+code=RegesterVar1										//なんでもいい(0～F)
+objprm 0,"****-******-****-****-**"						//D7 or D8 
+objprm 1,"認証中"
+await 500:wait 500
+split code,"-",code
+goto *keycheck
+
+*keycheck
+if length(code)!=5{goto *regesterfalse}
+
+tmp=code(0)
+tmp=strtrim(tmp,3,'0')
+tmp=strtrim(tmp,3,'1')
+tmp=strtrim(tmp,3,'2')
+tmp=strtrim(tmp,3,'3')
+tmp=strtrim(tmp,3,'4')
+tmp=strtrim(tmp,3,'5')
+tmp=strtrim(tmp,3,'6')
+tmp=strtrim(tmp,3,'7')
+tmp=strtrim(tmp,3,'8')
+tmp=strtrim(tmp,3,'9')
+tmp=strtrim(tmp,3,'A')
+tmp=strtrim(tmp,3,'B')
+tmp=strtrim(tmp,3,'C')
+tmp=strtrim(tmp,3,'D')
+tmp=strtrim(tmp,3,'E')
+tmp=strtrim(tmp,3,'F')
+if tmp!=""{goto *regesterfalse}//数字以外が存在していないか
+tmp=code(0)
+tmp="$"+tmp
+tmp=int(tmp)	//10進数
+if int(tmp)\3!=0{goto *regesterfalse}
+
+tmp=code(1)
+tmp1=0
+if tmp="Akq9(m"{tmp1=1}
+if tmp="sSKy%b"{tmp1=1}
+if tmp="ATEN!E"{tmp1=1}
+if tmp="KtvR(c"{tmp1=1}
+if tmp="kF7p(c"{tmp1=1}
+if tmp="B5eX(V"{tmp1=1}
+if tmp="mS2H(f"{tmp1=1}
+if tmp="Akq9(m"{tmp1=1}
+if tmp="Qr9Y(i"{tmp1=1}
+if tmp="qX9x(s"{tmp1=1}
+if tmp="Dr8L(T"{tmp1=1}
+if tmp="T4eF(z"{tmp1=1}
+if tmp="z6Sg(t"{tmp1=1}
+if tmp="Y5nd(U"{tmp1=1}
+if tmp="Mi6F(b"{tmp1=1}
+if tmp="V4zu(W"{tmp1=1}
+if tmp1=0{goto *regesterfalse}
+
+tmp=code(2)
+if tmp="PQSw"{goto *keycheck2}
+tmp=strtrim(tmp,3,'0')
+tmp=strtrim(tmp,3,'1')
+tmp=strtrim(tmp,3,'2')
+tmp=strtrim(tmp,3,'3')
+tmp=strtrim(tmp,3,'4')
+tmp=strtrim(tmp,3,'5')
+tmp=strtrim(tmp,3,'6')
+tmp=strtrim(tmp,3,'7')
+tmp=strtrim(tmp,3,'8')
+tmp=strtrim(tmp,3,'9')
+tmp=strtrim(tmp,3,'A')
+tmp=strtrim(tmp,3,'B')
+tmp=strtrim(tmp,3,'C')
+tmp=strtrim(tmp,3,'D')
+tmp=strtrim(tmp,3,'E')
+tmp=strtrim(tmp,3,'F')
+if tmp!=""{goto *regesterfalse}//数字以外が存在していないか
+tmp=code(2)
+tmp="$"+tmp
+tmp=int(tmp)
+tmp1=str(13+gettime(2)+gettime(3))
+
+if int(tmp)!=tmp1{goto *regesterfalse}
+goto *keycheck2
+
+*keycheck2
+
+tmp=code(3)
+tmp=strtrim(tmp,3,'0')
+tmp=strtrim(tmp,3,'1')
+tmp=strtrim(tmp,3,'2')
+tmp=strtrim(tmp,3,'3')
+tmp=strtrim(tmp,3,'4')
+tmp=strtrim(tmp,3,'5')
+tmp=strtrim(tmp,3,'6')
+tmp=strtrim(tmp,3,'7')
+tmp=strtrim(tmp,3,'8')
+tmp=strtrim(tmp,3,'9')
+tmp=strtrim(tmp,3,'A')
+tmp=strtrim(tmp,3,'B')
+tmp=strtrim(tmp,3,'C')
+tmp=strtrim(tmp,3,'D')
+tmp=strtrim(tmp,3,'E')
+tmp=strtrim(tmp,3,'F')
+if tmp!=""{goto *regesterfalse}//数字以外が存在していないか
+
+tmp=code(4)
+tmp1=0
+if str(tmp)="D7"{tmp1=1}
+if str(tmp)="D8"{if tmp="PQSw"{goto *regestertrue}:tmp1=1}
+if tmp1=0{goto *regesterfalse}
+
+tmp="$"+code(0)+code(2)+code(3)+code(4)
+tmp=int(tmp)
+
+if tmp\2=0{goto *regestertrue}
+goto *regesterfalse
+
+*regesterfalse
+objenable 0,1
+objenable 1,1
+objprm 0,"不正な形式です。認証できません。"
+objprm 1,"Regester"
+stop
+
+*regestertrue
+dialog "認証成功。\n\n認証情報を出力しますか?\n・同じディレクトリ上に「regester.key」を出力します。\n・次回以降認証をスキップ出来ます\n・「regester.key」は第三者に譲渡しても鍵にはなりません\n・PC構成を変更した場合再認証が必須です。",2,"成功"
+
+if stat=6{
+digkey=""+sysinfo(0)+sysinfo(1)+sysinfo(2)+sysinfo(16)+sysinfo(17)+dir_exe
+repeat strlen(digkey)
+	x = peek( digkey , cnt ) + 3
+	if x > 255 :x -= 255
+		poke code , cnt , x
+loop
+digkey=code
+buffers=digkey
+notesel buffers
+notesave "regester.key"
+}
+goto *AllOK
+
+*AllOK
+mes "認証できた場合"

@@ -1,0 +1,103 @@
+#include "user32.as"
+title "Key Generator"
+screen 0,330,120
+randomize
+output=""
+mesbox output,330,100
+
+objsize 165,20
+pos 0,100:button gosub "いつでも認証可",*geneI
+pos 165,100:button gosub "一日以内に認証しないと失効",*geneD
+
+stop
+
+*geneI
+objenable 1,0:objenable 2,0
+code="ライセンス 認証はいつでもできます:\n"
+tmp=str((3*(rnd(30)+1))+18):mes tmp					//16進数が3で割り切れるかどうか
+tmp=strf("00%x", tmp):CharUpper varptr(tmp):mes tmp
+code=code+"\n"+tmp+"-"
+
+tmp=rnd(14)
+if tmp=0{code=code+"Akq9(m"}						//正当な記号
+if tmp=1{code=code+"sSKy%b"}
+if tmp=2{code=code+"KtvR(c"}
+if tmp=3{code=code+"kF7p(c"}
+if tmp=4{code=code+"ATEN!E"}
+if tmp=5{code=code+"B5eX(V"}
+if tmp=6{code=code+"mS2H(f"}
+if tmp=7{code=code+"Akq9(m"}
+if tmp=8{code=code+"Qr9Y(i"}
+if tmp=9{code=code+"Dr8L(T"}
+if tmp=10{code=code+"T4eF(z"}
+if tmp=11{code=code+"z6Sg(t"}
+if tmp=12{code=code+"Y5nd(U"}
+if tmp=13{code=code+"Mi6F(b"}
+if tmp=14{code=code+"V4zu(W"}
+
+code=code+"-PQSw-"									//永続のためPQSw
+repeat 4
+	tmp=rnd(15)										//なんでもいい(0～F)
+	if tmp=10{tmp="A"}
+	if tmp=11{tmp="B"}
+	if tmp=12{tmp="C"}
+	if tmp=13{tmp="D"}
+	if tmp=14{tmp="E"}
+	if tmp=15{tmp="F"}
+	code=code+str(tmp)
+loop
+
+code=code+"-D8"
+
+objprm 0,code
+return
+
+*geneD
+objenable 1,0:objenable 2,0
+code="ライセンス 一日以内に認証してください:\n"
+
+tmp=str((3*(rnd(30)+1))+18):mes tmp					//16進数が3で割り切れるかどうか
+tmp=strf("00%x", tmp):CharUpper varptr(tmp):mes tmp
+code=code+"\n"+tmp+"-"
+
+tmp=rnd(14)
+if tmp=0{code=code+"Akq9(m"}						//正当な記号
+if tmp=1{code=code+"sSKy%b"}
+if tmp=2{code=code+"KtvR(c"}
+if tmp=3{code=code+"kF7p(c"}
+if tmp=4{code=code+"ATEN!E"}
+if tmp=5{code=code+"B5eX(V"}
+if tmp=6{code=code+"mS2H(f"}
+if tmp=7{code=code+"Akq9(m"}
+if tmp=8{code=code+"Qr9Y(i"}
+if tmp=9{code=code+"Dr8L(T"}
+if tmp=10{code=code+"T4eF(z"}
+if tmp=11{code=code+"z6Sg(t"}
+if tmp=12{code=code+"Y5nd(U"}
+if tmp=13{code=code+"Mi6F(b"}
+if tmp=14{code=code+"V4zu(W"}
+
+tmp=str(13+gettime(2)+gettime(3))
+tmp=strf("%x", tmp):CharUpper varptr(tmp)
+if strlen(tmp)=1{tmp="000"+tmp}
+if strlen(tmp)=2{tmp="00"+tmp}
+if strlen(tmp)=3{tmp="0"+tmp}
+code=code+"-"+tmp+"-"
+
+repeat 4
+	tmp=rnd(15)										//なんでもいい(0～F)
+	if tmp=10{tmp="A"}
+	if tmp=11{tmp="B"}
+	if tmp=12{tmp="C"}
+	if tmp=13{tmp="D"}
+	if tmp=14{tmp="E"}
+	if tmp=15{tmp="F"}
+	code=code+str(tmp)
+loop
+split code,"-",tmp
+tmp="$"+tmp(0)+tmp(2)+tmp(3)+"D7"
+tmp=int(tmp)
+if int(tmp)\2=0{code=code+"-D7"}else{code=code+"-D8"}
+
+objprm 0,code
+return
