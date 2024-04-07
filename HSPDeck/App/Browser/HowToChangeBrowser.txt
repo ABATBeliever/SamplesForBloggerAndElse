@@ -1,0 +1,16 @@
+・HSPDeck既定のブラウザを変更・
+
+最初は「InternetStrollerMemoria1.5.2.0」が入っていますが、自由に変更できます。
+
+HSPDeckはApp\Browser内のApp.exeにURLを引数として渡します。
+App.exeがない場合はMicrosoftEdgeになります。
+
+好きなブラウザの本体をApp.exeにして置き換えることで、自由に変更できます。
+
+例:Firefoxにしたい場合
+
+1:https://portableapps.com/apps/internet/firefox_portableからzipを入手
+2:解凍し、'Firefox.exe'を'App.exe'にリネームする
+3:ディレクトリごとここに張り付ける
+
+この方法で、ポータブル版があるブラウザに設定できます。

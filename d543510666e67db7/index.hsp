@@ -1,0 +1,50 @@
+#uselib "user32.dll"
+#func SetProcessDPIAware "SetProcessDPIAware"
+#include "kernel32.as"
+#include "shell32.as"
+#define ctype pek(%1,%2)  ((%1(%2/8)>>(%2\8))&1)	;%1の%2ビット目を抽出
+#define ctype pok1(%1,%2) %1(%2/8)|=1<<(%2\8)		;%1の%2ビット目に1を書き込む
+#uselib "winmm.dll"
+#cfunc timeGetTime "timeGetTime"
+SetProcessDPIAware
+screen 0,400,420
+await 100
+
+dim OSVERSIONINFO, 37
+OSVERSIONINFO = $94
+GetVersionEx varptr(OSVERSIONINFO)
+
+title "測定中"
+mes "[OS	]"
+mes "	Major	> "+str(OSVERSIONINFO.1)
+mes "	Minor	> "+str(OSVERSIONINFO.2)
+mes "	BuildID	> "+str(OSVERSIONINFO.3)
+getstr csdversion, OSVERSIONINFO, 20
+mes "	CSD	> "+str(csdversion)
+
+mes "[USER	] "+sysinfo(1)
+mes "[PC	] "+sysinfo(2)
+GetUserDefaultLCID				//http://msdn.microsoft.com/en-us/library/aa381058.aspx
+mes "[Lang	] "+str(stat)+"	[ja-JP:1041,en-US:1033]"
+mes "[Core	] " +str(sysinfo(17))
+mes "[Calc	]"
+
+result=""
+repeat 5
+n=3000000
+dim map,n/8+1
+map(0)=3
+tmp=timegettime()
+for i,0,n,1
+	if pek(map,i)=0{
+		for j,i+i,n,i : pok1(map,j) : next
+	}
+next
+result(cnt)=(timegettime()-tmp)
+mes "	>"+result(cnt)+"ms"
+loop
+mes "	avg:	"+str((result(0)+result(1)+result(2)+result(3)+result(4))/5)+"ms"
+
+bmpsave dir_exe+"\\result.bmp"
+mes "\nSaved:	"+dir_exe+"result.bmp"
+mes "[EOF]":title "[OK]":dialog "完了。result.bmpを送ってね":end

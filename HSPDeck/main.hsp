@@ -1,0 +1,350 @@
+//HSPDeck 2023-2024 ABATBeliever
+#include "hsp3_64.as"
+#include "shell32.as"
+#packopt icon "icon.ico"
+
+title "Application.Firstini"
+#include "user32.as"
+///////////////////////////
+//0:Deck
+//1:bufer
+//2:Textbox
+///////////////////////////
+onerror *GS_ERROR
+onclick gosub *GS_CLICK
+LastWallPaper="UNKNOWN"
+v_note=""
+ISetting="false"
+CH=dir_cur
+
+CreatePopupMenu
+hMenu.0 = stat
+	AppendMenu hMenu.0, 0, 3, "取得されたデータを左上に表示"
+
+CreatePopupMenu
+hMenu.1 = stat
+	AppendMenu hMenu.1, 0, 4, "Notepad.ELF"
+	AppendMenu hMenu.1, 0, 5, "LoadWhistler.EXE"
+	AppendMenu hMenu.1, 0, 6, "WebBrowser.EXE"
+	AppendMenu hMenu.1, 0, 7, "???"
+	
+CreatePopupMenu
+hMenu.10 = stat
+	AppendMenu hMenu.10, $10, hMenu.0, "表示(&V)"
+	AppendMenu hMenu.10, 0, 1, "背景画像を変更"
+	AppendMenu hMenu.10, $10, hMenu.1, "プログラムを開く(&H)"
+	AppendMenu hMenu.10, $800, 0, ""
+	AppendMenu hMenu.10, 0, 2, "最新の情報に更新(&E)"
+	
+CreatePopupMenu
+hMenu.20 = stat
+	AppendMenu hMenu.20, $10, hMenu.0, "表示(&V)"
+	AppendMenu hMenu.20, 0, 1, "背景画像を変更"
+	AppendMenu hMenu.20, $800, 0, ""
+	AppendMenu hMenu.20, 0, 4, "Notepad.ELF"
+	AppendMenu hMenu.20, 0, 5, "LoadWhistler.EXE"
+	AppendMenu hMenu.20, 0, 6, "WebBrowser.EXE"
+	AppendMenu hMenu.20, $800, 0, ""
+	AppendMenu hMenu.20, 0, 2, "最新の情報に更新(&E)"
+
+title "Application.LoadFunc"
+#module
+
+	#deffunc df_bsod str p1,str p2
+		gsel 0
+		LastWallPaper="SAFEMODE"
+		cls 0:color 0,0,255:boxf 0,0,1200,700:color 255,255,255:font "ＭＳ 明朝",22,1:mes "\n\n\n\n\n	"+dc_getver()+"\n\n\n\n\n	申し訳ありません。\n	HSPDeckは致命的な問題を検出したため、動作を停止しました。\n\n	問題	:	"+p1+"\n	StopCode:	"+p2+"\n\n	問題の詳細については 'https://abatbeliever.github.io/HSPDeck/BSOD/' を参照してください。"
+		df_changetitle "致命的な問題が発生しています:"+p2
+		dialog "申し訳ありません。\nHSPDeckは致命的な問題を検出したため、動作を停止しました。\n\n問題	:"+p1+"\nStopCode:"+p2+"\n\n問題の詳細については 'https://abatbeliever.github.io/HSPDeck/BSOD/' を参照してください。\nOKかEnterで強制終了します。\n\nいいえ(N)が押された場合は可能な限り続行しますが、\n成功した場合でもすぐに終了することをお勧めします。",3,str(dc_getver())
+		if stat=7{df_changetitle "致命的な問題を無視しています:"+p2:mes "\n\nシステム復元中":goto *main@}else{end}
+	return
+	
+	#deffunc df_err str p1
+		gsel 0
+		dialog "申し訳ありません。\nHSPDeckで小規模な問題が発生しました。\n\n"+p1+"\n処理は続行されます。",1,""+dc_getver()
+	return
+
+	#defcfunc dc_getver
+		tmp=v_appname@+" "+v_appver@+" "+v_appruntime@
+	return tmp
+
+	#deffunc df_initialize
+		df_changetitle "初期化中"
+		v_appname@="HSPDeck"
+		v_appver@="v0.20"
+		v_appruntime@="x64"
+		v_buildday@="2024/02/05"
+		v_TextBox1=""
+		v_TextBox2=""
+		screen 0, 1280,720
+		GetWindowLong hwnd, -16
+		SetWindowLong hwnd, -16, stat - $20000
+		width 1200,700
+		df_changetitle "初期化完了"
+	return 0
+
+	#deffunc df_changebackground str p1
+		LastWallPaper@=p1
+		gsel 0
+		buffer 1,100,100
+		picload p1,0
+		copyToX(0) = 0
+		copyToX(1) = 1280
+		copyToX(2) = 1280
+		copyToX(3) = 0
+		copyToY(0) = 0
+		copyToY(1) = 0
+		copyToY(2) = (720-55)
+		copyToY(3) = (720-55)
+		copyFromX(0) = 0
+		copyFromX(1) = ginfo_winX
+		copyFromX(2) = ginfo_winX
+		copyFromX(3) = 0
+		copyFromY(0) = 0
+		copyFromY(1) = 0
+		copyFromY(2) = ginfo_winY
+		copyFromY(3) = ginfo_winY
+		gsel 0
+		gsquare 1, copyToX, copyToY, copyFromX, copyFromY
+		color 0,128,255:boxf 0,665,1280,720
+		chdir ch@
+	return 0
+
+	#deffunc df_background
+		cls 0
+		if LastWallPaper@="SAFEMODE" {return}
+		if LastWallPaper@="UNKNOWN" {
+		exist "C:\\Users\\"+sysinfo(1)+"\\appdata\\roaming\\microsoft\\windows\\themes\\TranscodedWallpaper"
+		if strsize!=-1{df_changebackground "C:\\Users\\"+sysinfo(1)+"\\appdata\\roaming\\microsoft\\windows\\themes\\TranscodedWallpaper":return}
+		
+		exist "C:\\Users\\"+sysinfo(1)+"\\appdata\\local\\Microsoft\\Windows\\Themes\\RoamedThemeFiles\\DesktopBackground\\img0.jpg"
+		if strsize!=-1{df_changebackground "C:\\Users\\"+sysinfo(1)+"\\appdata\\local\\Microsoft\\Windows\\Themes\\RoamedThemeFiles\\DesktopBackground\\img0.jpg":return}
+		
+		exist "C:\\Windows\\Web\\Wallpaper\\Windows\\img0.jpg"
+		if strsize!=-1{df_changebackground "C:\\Windows\\Web\\Wallpaper\\Windows\\img0.jpg":return}
+
+		dialog "jpg",16,""
+		if stat=0{df_bsod "背景画像が完全に見つかりません","0001"}else{df_changebackground refstr:return}
+		}else{
+		df_changebackground LastWallPaper@}
+	return 0
+	
+	#deffunc df_changetitle str p1
+		title ""+(dc_getver())+" : "+p1
+	return 0
+
+	#deffunc df_InputBox str p1, str p2, str p3, int p4
+		screen 2,300,200,0
+		gsel 2,2
+		GetWindowLong hwnd, -16
+		SetWindowLong hwnd, -16, stat - $80000
+		width ,,(ginfo_mx),(ginfo_my-500)
+		title p3
+		v_TextBox1@=p1
+		v_TextBox2@=p2
+		mesbox v_TextBox1@,300,50,0
+		mesbox v_TextBox2@,300,120
+		InputBoxGo@=p4
+		pos 115,175:button gosub "OK",*GS_InputBoxOK@
+		gsel 0
+	return
+
+	#deffunc OpenBrowser str p1
+		BrowserPATH=""+dir_exe+"\\App\\Browser\\App.exe"
+		exist BrowserPATH
+		if strsize!=-1{ShellExecuteW 0, "open", BrowserPATH, p1, 0, 10}else{ShellExecuteW 0, "open", "msedge", p1, 0, 10}
+	return
+
+	#deffunc OpenMP3
+		MP3PATH=""+dir_exe+"\\App\\LoadWhistler\\App.exe"
+		exist MP3PATH
+		if strsize!=-1{ShellExecuteW 0, "open", MP3PATH, "", 0, 10}else{dialog "有効なMP3プレーヤーが見つかりません。\nApp\\LoadWhistler\\App.exeが存在しない。"}
+	return
+#global
+
+////////////////
+df_changetitle "起動中"
+df_initialize
+////////////////
+*main
+df_initialize
+df_background
+df_changetitle "メインメニュー"
+font "ＭＳ 明朝",20,1:color 255,255,255
+pos 0,0:mes (dc_getver())+" ("+v_buildday+")\nBuild by ABATBeliever"
+
+objsize 70,25
+pos 2,672:button gosub "START",*GS_START
+
+objsize 25,25:pos 94,672:button gosub "Go",*GS_inputbar
+font "メイリオ",12,2:v_inputbar="ここから検索":pos 120,672:objmode 2:input v_inputbar,220,25:objmode 1
+objsize 40,30
+font "ＭＳ 明朝",20,1
+pos 350,668:button gosub "ﾃｷｽﾄ",*GS_Notepad
+pos 392,668:button gosub "壁紙",*GS_ChangeBack
+pos 434,668:button gosub "BSOD",*GS_CreateBSOD
+pos 476,668:button gosub "ｽｸｼｮ",*GS_TAKE
+
+buffer 4,700,700:gsel 0
+
+objsize 35,35
+exist "img\\InternetSetting.jpeg"
+if strsize=-1{dialog "imgﾌｫﾙﾀﾞ又は要素が不足しています。":end}
+chdir ch:gsel 4:picload "img\\InternetSetting.jpeg",1:gsel 0
+objimage 4,0,0,0,0:pos 30,60:button gosub "",*GS_Window_ISetting
+
+exist "img\\loadwhistler.png"
+if strsize=-1{dialog "imgﾌｫﾙﾀﾞ又は要素が不足しています。":end}
+chdir ch:gsel 4:pos 150,35:picload "img\\loadwhistler.png",1:gsel 0
+objimage 4,150,35,150,35:pos 30,120:button gosub "",*GS_LoadWhistler
+
+objsize 50,50
+pos 500,0
+
+gosub *GS_App
+stop
+
+///////////////
+*G_BSOD
+df_bsod "マニュアルによる停止","0002"
+stop
+
+//////////////
+*GS_START
+TrackPopupMenu hMenu.20, $100, ginfo(0), (ginfo(1)-100), 0, hwnd, 0
+if stat = 0 : return;Cancel
+if stat = 1 : gosub *GS_ChangeBack
+if stat = 2 : goto *main
+if stat = 3 : gosub *GS_CLICK_3
+if stat = 4 : gosub *GS_NotePad
+if stat = 5 : gosub *GS_LoadWhistler
+if stat = 6 : gosub *GS_Browser
+if stat = 7 : dialog "見つかりません"
+return
+
+*GS_App
+if ISetting@="true" {gosub *GS_Window_ISetting@}
+return
+
+*GS_Window_ISetting
+ISetting="true"
+BrowserPATH=""+dir_exe+"\\App\\Browser\\App.exe"
+exist BrowserPATH
+if strsize!=-1{tmp="App.exeが存在するため、そちらが使用されます"}else{tmp="存在しない/ブラウザではないのでMicrosoftEdge"}
+color 255,255,255:boxf 100,50,450,275
+color 0,0,0:boxf 100,50,450,70
+color 255,255,255:pos 105,55:font "ＭＳ 明朝",10,1:mes "インターネット接続設定ウィンドウ"
+color 0,0,0:pos 120,75:font "ＭＳ 明朝",10,1:mes "インターネットの設定ウィンドウです\n\nHSPDeckは、既定のウェブブラウザとして\n'use\\Browser.exe'を使用します。\n\n・App\\Browserフォルダ内にApp.exeが存在しない等\n　問題があった場合はMicosoftEdgeとなります。\n\n・例えばポータブル版Firefox等が使用できます。\n　(PortableApps.com)\n\n現在:"+tmp+"\n\nこのウィンドウは、HSPDeck初の描画ウィンドウです☆\nこれなんと画像書き換えたりしてもウィンドウ残るんですよっ\n2023/12/19"
+gsel 4
+color 255,0,0:boxf 50,50,100,100
+gsel 0
+objsize 15,15:objimage 4,50,50,50,50:pos 430,52:button "x",*GS_Window_ISetting_CLS
+return
+
+*GS_Window_ISetting_CLS
+ISetting="false"
+goto *main
+stop
+
+*GS_TAKE
+dialog "png" , 17 , "Capture"
+if stat != 0{gsel 0:bmpsave refstr:dialog "OK\n\n("+refstr+")"}
+return
+
+*GS_ERROR
+df_bsod "Windowsによりプロセスの問題が報告されました","0003."+wparam+"."+lparam
+
+*GS_DIV
+tmp="あ"/2
+return
+
+*GS_CLICK
+if wparam = 2 {
+	TrackPopupMenu hMenu.10, $100, ginfo(0), ginfo(1), 0, hwnd, 0
+	if stat = 0 : return;Cancel
+	if stat = 1 : gosub *GS_ChangeBack
+	if stat = 2 : goto *main
+	if stat = 3 : gosub *GS_CLICK_3
+	if stat = 4 : gosub *GS_NotePad
+	if stat = 5 : gosub *GS_LoadWhistler
+	if stat = 6 : gosub *GS_Browser
+	if stat = 7 : dialog "見つかりません"
+	}
+return
+
+*GS_CLICK_3
+gsel 0
+pos 30,50
+font "ＭＳ 明朝",20,1
+mes "\n壁紙:"+LastWallPaper
+mes "\n"+dir_exe+"\\HSPDeck.exe\n\nようこそ、「"+sysinfo(1)+"」\nカラーパレット:"+ginfo_paluse+"\n次に利用できるｳｨﾝﾄﾞｳID:"+ginfo_newid+"\nWindows.Desktop:"+dir_desktop+"\n引数:"+dir_cmdline
+mes "\n[EOF]"
+return
+
+*GS_InputBOX
+df_InputBox "質問内容(書き換え不可)","最初の編集できるエリアのテキスト","テキストボックス関数のテスト",1
+return
+
+*GS_InputBoxOK
+gsel 2,-1
+if InputBoxGo=1{dialog v_textbox2:return}
+if InputBoxGo=2{df_bsod v_textbox2,"0005"}
+df_err "InputBoxに対応するパラメータが無効です :"+InputBoxGo
+return
+
+*GS_ChangeBack
+dialog "jpg",16,""
+if stat=0{return}
+df_changebackground refstr
+gosub *GS_App
+return
+
+*GS_CreateBSOD
+df_InputBox "BSODを任意の文字で起こします。エラーコードは0005となります。","","CreateBSOD.ELF",2
+return
+
+*GS_Notepad
+screen 3,300,200,0
+	gsel 3,2
+	title "Notepad.ELF"
+	GetWindowLong hwnd, -16
+	SetWindowLong hwnd, -16, stat - $80000
+	notesel v_note
+	mesbox v_note,300,175
+	objsize 100,25
+	pos 0,175:button gosub "保存",*GS_Notepad_s
+	pos 100,175:button gosub "読込",*GS_Notepad_l
+	pos 200,175:button gosub "閉じる",*GS_Notepad_e
+	gsel 0
+return
+
+*GS_Notepad_s
+dialog "txt" , 17 , "txtFile"
+if stat != 0{gsel 0:notesave refstr}
+return
+
+*GS_Notepad_l
+gsel 3,1
+dialog "",16,""
+gsel 3,2
+if stat=0{dialog "キャンセルされました":return}
+dialog "上書きしますか?",3,"Notepad.ELF"
+if stat=6{noteload refstr:gosub *GS_Notepad}
+return
+
+*GS_Notepad_e
+gsel 3,-1
+gsel 0
+return
+
+*GS_inputbar
+OpenBrowser "https://www.google.co.jp/search?q="+v_inputbar
+return
+
+*GS_LoadWhistler
+OpenMP3
+return
+
+*GS_Browser
+OpenBrowser ""
+return

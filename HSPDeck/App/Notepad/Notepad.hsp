@@ -1,0 +1,36 @@
+#include "hsp3_64.as"
+//This is Notepad , HSPDeck
+v_note=""
+gosub *GS_Notepad
+stop
+*GS_Notepad
+screen 0,300,200,0
+	title "Notepad.ELF"
+	notesel v_note
+	mesbox v_note,300,175
+	objsize 100,25
+	pos 0,175:button gosub "•Û‘¶",*GS_Notepad_s
+	pos 100,175:button gosub "“Ç",*GS_Notepad_l
+	pos 200,175:button "•Â‚¶‚é",*G_Notepad_e
+	gsel 0
+return
+
+*GS_Notepad_s
+dialog "txt" , 17 , "txtFile"
+if stat = 0{return}
+gsel 0
+notesave refstr
+return
+
+*GS_Notepad_l
+if v_note = "about"{dialog "Notepad.ELF - for HSPDeck v1.0\n\nMade by ABATBeliever":return}
+dialog "",16,""
+if stat=0{dialog "ƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½":return}
+dialog "ã‘‚«‚µ‚Ü‚·‚©?",3,"Notepad.ELF"
+if stat!=6{return}
+noteload refstr
+gosub *GS_Notepad
+return
+
+*G_Notepad_e
+end
