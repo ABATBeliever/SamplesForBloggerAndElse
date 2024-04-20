@@ -1,0 +1,47 @@
+#epack "Ban.txt"
+#module
+#deffunc Replace var p1, str p2, str p3
+repeat strlen(p1)
+    await
+    idx = instr(p1, 0, p2)
+    if(idx == -1){ break }
+    p1 = strmid(p1, 0, idx) + p3 + strmid(p1, idx + strlen(p2), strlen(p1) - idx)
+loop
+return
+#global
+
+x=700
+y=600
+screen 0,x,y
+sdim output,0x5EEEFFC8
+mesbox output,x,y-40
+objsize x-40,40:button gosub "検閲",*start
+objsize 40,40:pos x-40,y-40:button gosub "クリア",*clear
+notesel buffers
+exist "Ban.txt"
+if strsize=-1{dialog "データがありません":end}
+noteload "Ban.txt"
+before=""
+repeat notemax
+	title "配慮君 - リスト読み込み中 "+str(cnt)
+	noteget before(cnt),cnt
+loop
+title "配慮君"
+stop
+
+*start
+objenable 0,0
+after = "***"
+title "配慮君 - 配慮中"
+repeat length(before)
+	title "配慮君 - 配慮中("+str(cnt)+"/"+str(length(before))+")"
+	Replace output, before(cnt), after
+	if cnt\20=0{objprm 0,output}
+loop
+objprm 0,output:objenable 0,1
+title "配慮君"
+return
+*clear
+objprm 0,""
+output=""
+return
