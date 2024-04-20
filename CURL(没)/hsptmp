@@ -1,0 +1,54 @@
+#include "hspinets.as"
+#runtime "hsp3cl"
+url=dir_cmdline
+if url="--help"{goto *help}
+if url=""{mes "hcurl: try 'hcurl --help' for more information":stop}
+tmp(10)=""
+split url," ",tmp
+url=tmp(0)
+if length(tmp)>1{file=tmp(1)}
+
+//if file="-V"{goto *ver}
+//if file="-v"{goto *ver}
+//if file="--Version"{goto *ver}
+
+netinit
+if stat : mes "hcurl: (0) Could not connect Internet:" : stop
+neturl url
+netrequest_get ""
+
+*main
+netexec res
+if res > 0 : goto *comp
+if res < 0 : goto *bad
+goto *main
+
+*bad
+neterror estr
+mes "hcurl: (1) Could not by res: <"+estr+">"
+stop
+	
+*comp
+sdim buf, netgetv_size()
+netgetv_data buf
+if file="-o"{goto *out}
+if file="-O"{goto *out}
+if file="--output"{goto *out}
+mes buf
+stop
+
+*out
+if length(tmp)>2{file=tmp(3)}else{file="din"}
+file=tmp(2)
+bsave file, buf, netgetv_requestsize()
+stop
+
+*help
+mes "Usage: hcurl <url> [options...]
+mes "-o, --output <file>        Write to file instead of stdout"
+mes "-V, --version              Show version number and quit"
+stop
+
+*ver
+mes "Made:ABATBeliever\nHSPINETS hsp.moe"
+stop

@@ -1,0 +1,45 @@
+newcom spv, "Sapi.SpVoice"
+screen 0, 500, 400
+sdim word,0xFFFFFF
+log(0)="こんにちは、CatChatへようこそ\n"+sysinfo(1)+"さん、こんにちは。あたらしいトピックを始めましょう。"
+mesbox log,500,320
+if varuse(spv)=0 : dialog "SAPI not found..." : end
+title "CatChat - あたらしいトピック"
+mesbox word,420,80
+pos 420,320:objsize 80,80:button "Speak!", *speak
+randomize
+gosub *get
+stop
+
+*speak
+
+tmp=wordlist(rnd(notemax))
+log(length(log))="\n"+sysinfo(1)+"@"+sysinfo(2)+"> "+word
+log(length(log))="人工無能> "+tmp
+
+tmp0=""
+
+if length(log)<10{count=length(log):stack=0}else{count=10:stack=length(log)-10}
+repeat count-1
+	tmp0=tmp0+"\n"+log(cnt+1+stack)
+loop
+
+objprm 0,tmp0
+spv->"speak" tmp,1
+objprm 1,""
+stop
+
+*get
+	notesel buffers
+	exist "wordlist.txt"
+	if strsize=-1{dialog "wordlist.txtがないにゃ":end}
+	noteload "wordlist.txt"
+	if notemax<1{dialog "wordlist.txtが空にゃ":end}
+	wordlist=""
+	repeat notemax
+		noteget wordtmp,cnt
+		wordlist(cnt)=wordtmp
+		title "ロード - "+str(cnt+1)+"/"+str(notemax)
+	loop
+	title "CatChat - あたらしいトピック"
+	return
