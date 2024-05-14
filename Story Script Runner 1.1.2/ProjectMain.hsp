@@ -1,0 +1,131 @@
+#uselib "gdi32.dll"
+#uselib "user32.dll"
+#func SetProcessDPIAware "SetProcessDPIAware"
+SetProcessDPIAware
+font "FixedSys"
+
+AppName="Story Script Runner"				//アプリの名前
+AppDeveloper="ABATBeliever"					//開発者
+AppVersion="1.1.0"							//Version
+AppBuildDay="2024/03/13"					//作った日付。入れておくと思い出にしやすい
+
+#module
+	#deffunc FileExist str p1
+		exist p1
+		if strsize = -1 {dialog "ファイル「"+p1+"」が見つかりません\nプログラムと一緒にあったtxtやjpg等がどこかに行っちゃっていませんか?\nこの問題が続くなら、"+AppDeveloper@+"に問い合わせましょう。\n\nselect:	"+select@+"\nFile:	"+p1,1,"Err":end}
+	return
+	#defcfunc jump str p1
+		noteload "Data.txt"
+		repeat notemax
+			noteget tmp,cnt
+			split tmp," ",tmp
+			if tmp(0)="#"{if tmp(1)=p1{return cnt+1}}
+		loop
+		dialog ""+p1+" は見つかりませんでした。\nプログラムの設計エラーです"
+		end
+	return
+#global
+
+oncmd gosub *OnMciNotify, 0x03B9
+onexit goto *OnClose
+
+*one
+tmp=""
+select=1
+gosub *UI
+goto *Main
+
+*UI
+screen 0,600,500							//サイズ
+title AppName								//タイトル
+CharBox=""									//下の会話のところの変数
+pos 0,400:mesbox CharBox,500,100,0			//input 変数,x,y,最大文字(0にすると弄れなくなる)
+objsize 100,30								//ボタンのために、サイズを変更
+pos 500,400:button "",*choice1				//選択肢1
+pos 500,430:button "",*choice2				//選択肢2
+objsize 100,40								//100あるのを3つにするために、30-30-40なのでサイズ変更
+pos 500,460:button "",*nexts				//進める
+return
+
+*Main
+notesel buffers
+FileExist "Data.txt"
+noteload "Data.txt"
+noteget tmp,0
+title tmp
+goto *LoadMessage
+stop
+
+*LoadMessage
+noteget tmp,select
+select=select+1
+if select>notemax{tmp="end オーバーランによる強制終了\n\nデータが破損しているか、ミスか、あるいは'文字コードがANSIでなくUnicode'である可能性があります。\nWindowsメモ帳で開き、名前を付けて保存、下の欄で文字コードをANSIにして保存してみてください。"}
+split tmp," ",tmp
+if tmp(0)="story"{
+	objprm 0,tmp(1)
+	objprm 1,""
+	objprm 2,""
+	objprm 3,"読み進める"
+	stop
+}
+if tmp(0)="select"{
+	objprm 0,tmp(1)
+	objprm 1,tmp(2)
+	objprm 2,tmp(3)
+	objprm 3,""
+	stop
+}
+if tmp(0)="bgm"{
+	mci "open \""+tmp(1)+"\" alias mciBGM"
+	mci "play mciBGM from 0 notify"
+	goto *LoadMessage
+}
+if tmp(0)="sound"{
+	mci "open \""+tmp(1)+"\" alias mciSOUND"
+	mci "play mciSOUND from 0 notify"
+	goto *LoadMessage
+}
+if tmp(0)="end" {
+	dialog tmp(1)+"\n\nリトライ(Y)/終わる(N)",2,"リトライ/終了"
+	if stat=6{goto *one}
+	end
+}
+if tmp(0)="image"{
+	FileExist tmp(1)
+	buffer 1,100,100
+	picload tmp(1),0
+	copytox(0)=0:copytox(1)=600:copytox(2)=600:copytox(3)=0
+	copytoy(0)=0:copytoy(1)=0:copytoy(2)=400:copytoy(3)=400
+	copyfromx(0)=0:copyfromx(1)=ginfo_winx:copyfromx(2)=ginfo_winx:copyfromx(3)=0
+	copyfromy(0)=0:copyfromy(1)=0:copyfromy(2)=ginfo_winy:copyfromy(3)=ginfo_winy
+	gsel 0
+	gsquare 1,copytox,copytoy,copyfromx,copyfromy
+	goto *LoadMessage
+}
+goto *LoadMessage
+stop
+
+*choice1
+if tmp(0)!="select"{stop}
+select=int(jump(tmp.4))
+goto *LoadMessage
+
+*choice2
+if tmp(0)!="select"{stop}
+select=int(jump(tmp.5))
+goto *LoadMessage
+
+*nexts
+if tmp(0)!="story"{stop}
+goto *LoadMessage
+	
+*OnMciNotify
+if tmp(0)="sound"{tmp(0)="":return}
+if wParam == 1 {mci "play mciBGM from 0 notify"}
+return
+
+*OnClose
+title "終了中":cls 1
+mci "stop mciBGM wait":mci "stop mciSOUND wait"
+mci "close mciBGM":mci "close mciSOUND"
+end
