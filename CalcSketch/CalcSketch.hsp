@@ -1,0 +1,106 @@
+screen 0,300,100,8:title "CalcSketch"
+#module
+	#deffunc replace var _p1,str _p2,str _p3
+		index=0
+		str_index=0
+		message=_p1
+		repeat
+			str_index=instr(message,index,_p2)
+			if str_index=-1 : break
+			message=strmid(message,0,index+str_index)+_p3+strmid(message,-1,strlen(message)-(index+str_index+strlen(_p2)))
+			index=index+str_index+strlen(_p3)
+		loop
+		sdim _p1
+		_p1=message
+	return
+#global
+pos 40,16 :objsize  240   :sdim path,1024 :input path :objenable 0,0
+pos 20,20 :objsize  20,20 :button gosub "...",*Load
+pos 60,50 :objsize 180,40 :button "Run",*LoadNote 
+stop
+
+*Load
+	dialog "cst",16,""
+	if stat=0{return}
+	objprm 0,refstr:path=refstr
+	return
+
+*LoadNote
+sdim Var
+Var(0)="File,"+path
+
+notesel script
+exist path :if strsize=-1{dialog "Can't Load":stop}
+noteload path
+objenable 1,0:objenable 2,0:objprm 2,"Running... "+str(strsize)+"byte"
+screen 1,500,400:title ""
+LoadCNT=0
+goto *Select
+
+*Select
+repeat
+	if LoadCNT = notemax {break}
+	sdim tmp:sdim tmp2:noteget tmp,LoadCNT:LoadCNT++
+	
+	repeat length(Var)//ïœêîíuä∑
+		split Var(cnt),",",tmp2
+		replace tmp,"@"+tmp2(0)+"@",tmp2(1)
+	loop
+	replace tmp,"<br>","\n"
+	
+	split tmp," ",tmp :Command=tmp(0) :Arg=""
+	repeat (length(tmp)-1)
+		Arg+=tmp(cnt+1)
+	loop
+	split Arg,",",Args
+	if Command="end" {break}
+	switch Command
+		case ""          :swbreak
+		case "alert"     :gosub *j_alert :swbreak
+		case "print"     :gosub *j_print  :swbreak
+		case "square"    :gosub *j_square  :swbreak
+		case "line"      :gosub *j_line  :swbreak
+		case "circle"    :gosub *j_circle  :swbreak
+		case "setcolor"  :gosub *j_setcolor  :swbreak
+		case "set"       :gosub *j_set  :swbreak
+		default          :dialog "Error in "+str(cnt)+Command+"/"+Arg+str(LoadCNT)
+	swend
+loop
+
+dialog "Process done."
+gsel 1:clrobj:color 255,255,255:boxf:color 0,0,0:gsel 1,-1:gsel 0
+objenable 1,1:objenable 2,1:objprm 2,"Run"
+stop
+
+*j_alert
+dialog Arg
+return
+
+*j_print
+pos int(Args(0)),int(Args(1))
+mes Args(2)
+return
+
+*j_square
+boxf int(Args(0)),int(Args(1)),int(Args(2)),int(Args(3))
+return
+
+*j_line
+line int(Args(0)),int(Args(1)),int(Args(2)),int(Args(3))
+return
+
+*j_circle
+circle int(Args(0)),int(Args(1)),int(Args(2)),int(Args(3))
+return
+
+*j_setcolor
+color int(Args(0)),int(Args(1)),int(Args(2))
+return
+
+*j_set
+repeat length(Var)+1//ïœêîñº,íÜêg
+	if cnt=length(Var){Var(cnt)=""+Args(0)+","+Args(1)}
+	split Var(cnt),",",tmp
+	if tmp(0)=Args(0){Var(cnt)=""+Args(0)+","+Args(1):break}
+loop
+return

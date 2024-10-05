@@ -1,0 +1,156 @@
+//v3
+/*
+ららこ ? 昨日 22:25
+ex=40: ey=40: esp=10
+repeat
+    color: boxf: color 0,255,255
+    ex+=esp
+    if ex>590 | ex<40 {
+        esp=-esp: ex+=esp: ey+=16
+        if ey>400 { color 255: pos ex,ey: mes "◆": pos 280,200: mes "GAME OVER": stop }
+    }
+    pos ex,ey: mes "◆"
+    await 16
+loop
+基本的な敵の動作
+すべてのオブジェクトを同時に動かすとなんかおかしいので
+1つずつ動かすとよくなるのだ
+当時のアレはハードウェアの描画速度の理由からだろうけど
+結果的に見栄えもよくなっている
+ABATBeliever【この鯖では語尾のら】 ? 昨日 22:28
+とりあえず難しいってことはわかった
+ひとつづつ動かす...
+ららこ ? 昨日 22:28
+それべつに簡単なのだ。カウンタで管理するだけではないか
+配列番号をアタマから見ていって、まだ倒されていない敵だったら
+座標を移動するを繰り返すだけ
+ABATBeliever【この鯖では語尾のら】 ? 昨日 22:31
+やっぱり全員分の位置データが必要?
+ららこ ? 昨日 22:33
+それはいる
+Ronto_255 ? 昨日 22:33
+別にオリジナルに倣って忠実に移植する必要はないのではないか
+ABATBeliever【この鯖では語尾のら】 ? 昨日 22:33
+とりあえず論理的に動くようにしたい
+ららこ ? 昨日 22:33
+ただ間隔が同じだから、左上を起点にした座標だけで管理することは可能
+ちなみに毎フレームクリアしない方法であれば、実機と同じ考え方で実装できると思われる
+前のフレームをそのまま活かす。少し面倒だが
+るかか ? 昨日 22:39
+この流れと関係無いところで今更気が付きましたが、60fpsって16.666msなんでしたよね…。
+でもってms単位でしか指定はできないんでしたよね
+ららこ ? 昨日 22:39
+16.6666666666667
+msで指定できない上に1ms未満の誤差が検出できない
+前回のフレームとの差分でやった場合ね
+るかか ? 昨日 22:41
+画像
+ABATBeliever【この鯖では語尾のら】 ? 昨日 22:41
+動きはできたかも
+ららこ ? 昨日 22:41
+計算上は1ms単位であっても、17 17 16 で繰り返せば16.6666666666667になるんですが、計算は合っててもそのとおりにいかない
+awaitのその仕様では不足なのだ、確実に誤差が蓄積されていく
+(17+17+16)/3 = 16.6666666666667
+だからawaitはざっくりやる場合はいいんですがちゃんとやろうとしたら使えない
+るかか ? 昨日 22:43
+全く気が付いて居なかったし、気にもしていませんでした…
+私はこういうやりかたしてたから、これも何となくな30fpsになってたんやね
+画像
+(fpsには30入っています）
+そこまでの精度は必要無いからいいけど、精度ほしかったら諦めるしかないのですね
+ららこ ? 昨日 22:45
+いや正確にやる方法はなくはない、ただ別の方法をつかう
+もうひとつの鯖のほうでこのまえ話題にした
+るかか ? 昨日 22:46
+なるほど、必要になったら相談します。
+ららこ ? 昨日 22:46
+ひとつの答えはあちらに書いてあるのだ
+プログラム-雑談のところ
+awaitだけだと環境によって遅い方速い方どちらかに寄ってしまうのだ
+CPUが速いとかそういうのは関係ないのだ
+*/
+screen 0,640,480
+AppName="Space Invaders"
+
+Player(0)=5
+Player(1)=640/2
+Player(2)=400
+
+repeat 5
+	Block(cnt)=1
+loop
+
+//12x4で48敵
+EnemyX=20
+EnemyY=20
+EnemyLive( 0)=0//0は生存
+EnemyLive(47)=0
+
+Byouga=0
+Ball(0)=0
+Ball(1)=Player(1)+10
+Ball(2)=Player(2)
+font "",40
+EnemyMove=1//0:→ 1:←
+EnemyMoveSelect=0
+
+repeat
+redraw 0:Byouga++
+color 0,0,0:boxf
+color 255,255,255
+
+EnemyYtmp=EnemyY	//敵配置
+EnemyCount=0
+repeat 4
+	repeat 12
+		if EnemyYtmp>350{dialog "しんだ":end}
+		if EnemyLive(EnemyCount)=0{
+			if EnemyCount>(EnemyMoveSelect-1){boxf EnemyX+cnt*50,EnemyYtmp,EnemyX+cnt*50+20,EnemyYtmp+20
+												if EnemyX+cnt*50<Ball(1) and EnemyX+cnt*50+20>Ball(1) and EnemyYtmp-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0}
+			}else{
+			if EnemyMove=0{boxf (EnemyX+cnt*50)-5,(EnemyYtmp),(EnemyX+cnt*50+20)-5,EnemyYtmp+20
+							if (EnemyX+cnt*50)-5<Ball(1) and (EnemyX+cnt*50+20)-5>Ball(1) and (EnemyYtmp)-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0}
+				}else{
+			boxf (EnemyX+cnt*50)+5,(EnemyYtmp),(EnemyX+cnt*50+20)+5,EnemyYtmp+20}
+			if (EnemyX+cnt*50)+5<Ball(1) and (EnemyX+cnt*50+20)+5>Ball(1) and (EnemyYtmp)-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0}
+			}
+		}
+		EnemyCount++
+	loop
+	EnemyYtmp=EnemyYtmp+40
+loop
+
+EnemyMoveSelect++
+if EnemyMoveSelect=49{
+	EnemyMoveSelect=0
+	if EnemyX>50{EnemyMove=0:EnemyY=EnemyY+5}else:if EnemyX<10{EnemyMove=1:EnemyY=EnemyY+5}
+	if EnemyMove=1{EnemyX=EnemyX+5}else{EnemyX=EnemyX-5}
+	}
+
+repeat length(Block)
+	if Block(cnt)=1{boxf (20+cnt*130),350,(80+cnt*130),360} //ブロック
+loop
+
+pos Player(1),Player(2):mes "自"//自分
+
+getkey tmp,39:if tmp and (Player(1)<600){Player(1)=Player(1)+Player(0)}
+getkey tmp,37:if tmp and (Player(1)>10){Player(1)=Player(1)-Player(0)}
+getkey tmp,32:if tmp and cnt\2=0 and Ball(0)=0{gosub *gun}//動きと弾の描画
+
+
+if Ball(0)=1{
+	Ball(2)=Ball(2)-40:pos Ball(1),Ball(2):mes "|"
+	if Ball(2)<0{Ball(0)=0}
+}
+
+redraw 1
+title Appname+"描画:"+str(cnt):await 16//FPS管理
+
+
+loop
+
+*gun
+Ball(0)=1
+Ball(1)=Player(1)+10
+Ball(2)=Player(2)
+return

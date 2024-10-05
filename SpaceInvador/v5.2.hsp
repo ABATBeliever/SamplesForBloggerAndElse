@@ -1,0 +1,396 @@
+#include "kernel32.as"
+//v5
+/*
+当たり判定がおかしいのを隠すためだったり()
+なんかね～
+内部的には一斉に移動してて、一つ一つ元の座標に表示して～
+なんてことやってるから
+当たり判定がおかしいの
+ららこ ? 昨日 23:54
+そこは個別の座標でもいいんだけどな
+Ronto_255 ? 昨日 23:55
+それ余計にプログラミング難しくないですか
+ららこ ? 昨日 23:55
+ちなみにオリジナルのアレってプライマリ画面に直接描画の予感がする
+全画面クリアして再描画なんてアレはしてないな
+ABATBeliever【この鯖では語尾のら】 ? 昨日 23:55
+画像
+ららこ ? 昨日 23:55
+あれは変化があったところだけ再描画だな。でないと当時のハードでは遅くて無理がある
+Ronto_255 ? 昨日 23:55
+インデントめちゃくちゃでコメントも少ないから何がなにやってるか・・・
+ABATBeliever【この鯖では語尾のら】 ? 昨日 23:56
+自分でも見づらいカオス 
+ららこ ? 昨日 23:56
+正確には変化があったところだけVRAMを書き換えるだが
+ABATBeliever【この鯖では語尾のら】 ? 昨日 23:56
+キャラをコピーっていうのを「変数はxyひとつづづだけ」と解釈した 
+のでものすんごおく複雑
+Ronto_255 ? 昨日 23:57
+Windowsでウィンドウ動かすときその周辺だけ再描画するのに似てる
+え、配列使ってない？？？
+ららこ ? 昨日 23:57
+ららこさんの独自オブジェクトもみんなそう。だから速い
+どんなにオブジェクトが増えても描画コストはほとんど増えない
+ABATBeliever【この鯖では語尾のら】 ? 昨日 23:58
+位置では使ってないはず
+Ronto_255 ? 昨日 23:59
+ウッソだろ・・・
+ららこ ? 昨日 23:59
+そこはどっちでもいいけど配列でもええんよ
+Ronto_255 ? 昨日 23:59
+まあでもできないこともないんか
+ららこ ? 昨日 23:59
+配列なしでもこれはできる
+ABATBeliever【この鯖では語尾のら】 ? 昨日 23:59
+吐きそうなぐらいのスパゲッティ
+明日は当たり判定を何とかしたい
+あと音
+Ronto_255 ? 今日 00:00
+なんていうか、最初から読みやすくなるように書くことを心がけたほうがいいです
+ららこ ? 今日 00:00
+ららこさんの「いろぷち」なんて当たり判定座標しか見ていない
+プチプチ単位のオブジェクト管理なんてないのよ・・・
+考え方はこれと同じ
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:01
+(´；ω；｀)ﾌﾞﾜｱｱｱｱｱｱｱｱｱｱｱｱ
+ららこ ? 今日 00:01
+シンプルに書くのよ
+Ronto_255 ? 今日 00:01
+正直start.axを書き出してそれを逆コンパイルしたほうが読みやすいまである
+ららこ ? 今日 00:01
+()
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:02
+>敵は1個ずつ移動でええんやで
+ そして左右のある点まできたら折り返しフラグを立てる
+ これは1体で作っておいて座標ずらしで配置するだけでできる
+
+座標ずらしで配置=座標データは1セットだけ
+かと思った
+ららこ ? 今日 00:03
+配列でやってもいいし、べつにそれはどちらでもええのよ
+各オブジェクトの間隔が同じってところがミソ
+だから個別で管理しなくても座標出せるよねってのはある
+Ronto_255 ? 今日 00:04
+個別で座標管理したほうがわかりやすい気がするけどな
+ららこ ? 今日 00:04
+そ
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:04
+いまさらそれに戻す気力がない
+明日やる
+いや今日か
+ららこ ? 今日 00:05
+いろぷちは動かないもんが対象だから個別管理が不要だった
+Ronto_255 ? 今日 00:05
+まず読みやすくするのが先決かなぁと・・・
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:05
+コメントアウトしまくればなんとかなる? 
+(パックマン選ばなくてよかった、頭がオーバーヒートするかと)
+Ronto_255 ? 今日 00:07
+比較的作りやすいかな、と思って挙げた
+あとはがんばれ
+ららこ ? 今日 00:07
+パックマンは後日やるのだ(
+Ronto_255 ? 今日 00:07
+マインスイーパー作ろうぜ！
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:07
+でもインベーダーはもう明日終わりそうね
+スパゲティなのはコメントアウトで何とかする
+ららこ ? 今日 00:08
+>敵が攻撃してくるという内容は、営業部門を中心とする熟年社員には難しく[24]「敵が攻撃しないように改造しろ」という命令も出た。一方で開発部門を中心とする若い社員には好評であり[24]、西角は改造を拒否した（『新・電子立国』4、『未来創造堂』で西角が証言）[25]。コンピューター側が敵として攻撃してくるゲームは当時まだ珍しく、業者向けの内覧会でも、操作に慣れないうちに全滅してしまうと芳しくない評価であった[16]。
+Ronto_255 ? 今日 00:08
+コメントよりもインデントよ
+ららこ ? 今日 00:08
+タイトーの当時の爺どもうざいなw
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:08
+インデント苦手
+ららこ ? 今日 00:08
+こいつらの言うこと聞いてたら大ヒットなかったな
+Ronto_255 ? 今日 00:08
+慣れるのだ
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:08
+pythonみたいに毎回エラーだしてくれ
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:09
+ルール知らない
+Ronto_255 ? 今日 00:09
+プリインストールされてる（た）でしょ
+ららこ ? 今日 00:09
+>営業部門を中心とする熟年社員
+ちなみにこれ、当時の映像みるとヤンキーか何かにしか見えない
+NHKのルポルタージュにっぽんの映像にある
+言うこと聞かなくて大正解なのだ♪
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:10
+画像
+ららこ ? 今日 00:10
+当時の日本の企業の雰囲気なんだろうなアレww 適当
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:10
+私の最初に触ったWinは8.1、ないのら
+XPで遊んだけど、何かよくわかんない
+Ronto_255 ? 今日 00:10
+確かに最初はわけわからんかも
+でも再帰的処理の理解に最適
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:11
+1,2のタイルまではわかる
+ららこ ? 今日 00:12
+>「敵が攻撃しないように改造しろ」
+これ言ったやつアホやがな
+せっかくの新しい要素をw
+攻撃しなかったらなんも難しくないじゃないですか・・・
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:13
+どの時代も古い人間は足を引っ張ってくる
+ららこ ? 今日 00:13
+ようするにあれか、ブロック崩しの延長だとそういう発想になるんか
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:13
+たとえ無意識でも
+Ronto_255 ? 今日 00:13
+インベーダー以前にはインベーダーのようなゲームなかったんだから仕方ないかも
+ららこ ? 今日 00:14
+シューティングの基礎を作ったのだ
+Ronto_255 ? 今日 00:15
+とりあえずインデントだけ修正した
+画像
+{}の使い方が変態過ぎる
+ららこ ? 今日 00:16
+まあタイトーの営業については当時の映像が残っているから機会あったら見るよろしw
+なんだこれだが
+どこのガラの悪い男子校だよみたいな雰囲気
+昔は日本企業も適当許されてたんだなー
+バブル崩壊後はそんなの許されない雰囲気すごかったけど
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:19
+else:ifとか?
+Ronto_255 ? 今日 00:20
+if文は普通こう書く
+画像
+ららこ ? 今日 00:20
+elseif ってVBにはあるんだよな
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:20
+最初はそうしてたけど
+複雑な入れ子になると訳わかんなくなる
+ろんとさんのエディタ、IDLEみたいでいいね
+ららこ ? 今日 00:21
+前も書いたが
+if n { }
+else { }
+こういう書き方もなくはない
+Ronto_255 ? 今日 00:21
+元のコードの書き方だとどこまで{}が続いてるか一見してわからんしインデントもメチャクチャだからelseがどこに対応してるのかわからんし・・・
+なくはないのだけど読みにくすぎる
+ろんとさんのエディタはみんな大好きサクラエディタ
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:23
+ものすごく心当たりが
+Ronto_255 ? 今日 00:25
+まだ不十分だけど更に見やすく書くとこうか
+画像
+もとと比べてどう？
+ABATBeliever【この鯖では語尾のら】 ? 今日 00:26
+きれい
+劣等感に潰されるぐらい
+うう
+Ronto_255 ? 今日 00:27
+心がけるようにすればよいのだ・・・
+ららこ ? 今日 00:29
+ぶっちゃけおにたまさんのコードもあんま綺麗じゃないけどな・・・( 
+Ronto_255 ? 今日 00:33
+一番気になったのはここ
+一見してどこまでが{}で囲まれてるのかめちゃくちゃわかりにくいし、elseとの対応もわかりにくい
+自分が見やすいと思うなら別に構わないんだけど、見にくいと思うならこのクセ直したほうがいいです
+画像
+ららこ ? 今日 00:36
+えらく1行が長いのら
+普通の変数で２次元配列にするか、X座標とY座標で別々にデータを持つかした方がいい
+ららこ ? 今日 13:15
+x(i) y(i) だけではないか
+ABATBeliever【この鯖では語尾のら】 ? 今日 13:16
+「弾は発射されていない」状況も載せなきゃいけない
+IsExistEnemyBall(cnt)
+EnemyBall_x(cnt)
+EnemyBall_y(cnt)
+ららこ ? 今日 13:16
+やっぱり構造体とかそっち方面の書き方なの?
+あれは書き方としてはわかるが、HSPでは内部処理を考えて書かないと無駄増えるのよ
+Ronto_255 ? 今日 13:16
+だったら「発射されていない状況」を記録する配列を別に作ればいいのでは
+ABATBeliever【この鯖では語尾のら】 ? 今日 13:16
+構造体って何()
+Ronto_255 ? 今日 13:17
+0で存在しない、1で存在する、みたいな
+るかか ? 今日 13:17
+シーンに応じてキャラクターの表示優先度が変わり、奥側から順番に表示しているだけです
+ららこ ? 今日 13:17
+Web系では文字列にまとめて渡すとかやるのだが、あれはHSPでは向かないよ
+ABATBeliever【この鯖では語尾のら】 ? 今日 13:18
+パケットつくらないほうがいいのか
+るかか ? 今日 13:18
+構造体は、変数と配列をひとまとめにした感じの物です
+ららこ ? 今日 13:18
+前も書いたが数値は数値として処理する。文字列にする意味がない
+ABATBeliever【この鯖では語尾のら】 ? 今日 13:19
+でもこれだとリセットはどうするの
+消滅した玉のxとyには何を入れるん
+Ronto_255 ? 今日 13:19
+何も入れなくていい
+どうせ使わないでしょ
+ABATBeliever【この鯖では語尾のら】 ? 今日 13:19
+それだと格納される場所はだんだん数値増えない?
+Ronto_255 ? 今日 13:19
+うん？
+ららこ ? 今日 13:19
+ららこさんならばyをフラグ兼用にすることが多い
+y=-512 とかにして画面外に追いやって
+y<0 ならばオフと同じ意味になる
+y<0 ならば描画しない
+面外で当たってしまうのだ)
+ABATBeliever【この鯖では語尾のら】 ? 今日 13:44
+上の方の大量のコメントはのちに見返す用だから無視して
+クリア時に変数を開放
+添付ファイル種類：unknown
+v5.1.hsp
+12.58 KB
+ららこ ? 今日 13:48
+フラグみてないから途中で敵の弾が消えてるけど(
+ABATBeliever【この鯖では語尾のら】 ? 今日 13:49
+?
+ららこ ? 今日 13:49
+途中で敵の弾が消えてるで
+ABATBeliever【この鯖では語尾のら】 ? 今日 13:49
+あー
+防衛ブロックが死んだ後も消えてるね
+*/
+screen 0,640,480
+AppName="Space Invaders"
+
+HP=5
+
+*Start
+Player=640/2
+repeat 5
+	Block(cnt)=5//防護壁のHP
+loop
+
+//12x4で48敵
+EnemyX=20
+EnemyY=20
+
+repeat 48
+	EnemyLive(cnt)=0
+loop
+
+randomize
+
+Byouga=0
+Ball(0)=0
+Ball(1)=Player+10
+Ball(2)=400
+font "",20
+EnemyMove=1//0:→ 1:←
+EnemyMoveSelect=0
+
+dim EnemyGun_x
+dim EnemyGun_y
+
+repeat
+redraw 0:Byouga++
+color 0,0,0:boxf
+color 255,255,255
+
+EnemyYtmp=EnemyY	//敵配置
+EnemyCount=0
+MostXM=0
+MostXH=640
+IsAnyEnemy=0
+repeat 4
+	repeat 12
+		if EnemyYtmp>350{dialog "しんだ":end}
+		if EnemyLive(EnemyCount)=0{
+			IsAnyEnemy=1
+			if EnemyCount>(EnemyMoveSelect-1){//1コマずつ移動イベントの対象
+				boxf EnemyX+cnt*50,EnemyYtmp,EnemyX+cnt*50+20,EnemyYtmp+20
+				if EnemyX+cnt*50   >MostXM{MostXM=EnemyX+cnt*50}
+				if EnemyX+cnt*50+20<MostXH{MostXH=EnemyX+cnt*50+20}
+				if EnemyX+cnt*50<Ball(1) and EnemyX+cnt*50+20>Ball(1) and EnemyYtmp-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0}
+				if rnd(10001)>9975{gosub *EnemyGuns}
+			}else{
+				if EnemyMove=0{//1コマずつ移動イベントの対象外 & 移動方向の分岐
+					boxf (EnemyX+cnt*50)-5,(EnemyYtmp),(EnemyX+cnt*50+20)-5,EnemyYtmp+20
+					if EnemyX+cnt*50-5 >MostXM{MostXM=EnemyX+cnt*50-5}
+					if EnemyX+cnt*50+15<MostXH{MostXH=EnemyX+cnt*50+15}
+					if (EnemyX+cnt*50)-5<Ball(1) and (EnemyX+cnt*50+20)-5>Ball(1) and (EnemyYtmp)-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0}
+				}else{
+					boxf (EnemyX+cnt*50)+5,(EnemyYtmp),(EnemyX+cnt*50+20)+5,EnemyYtmp+20
+					if EnemyX+cnt*50+5 >MostXM{MostXM=EnemyX+cnt*50+5}
+					if EnemyX+cnt*50+25<MostXH{MostXH=EnemyX+cnt*50+25}
+					if (EnemyX+cnt*50)+5<Ball(1) and (EnemyX+cnt*50+20)+5>Ball(1) and (EnemyYtmp)-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0}
+					}
+				}
+			}
+		EnemyCount++
+	loop
+	EnemyYtmp=EnemyYtmp+40
+loop
+
+color 0,255,0
+line MostXH,0,MostXH,480
+line MostXM,0,MostXM,480
+
+color 255,0,0
+line 30,0,30,480
+line 600,0,600,480
+
+color 0,0,255
+EnemyMoveSelect++
+
+tmp=0
+if EnemyMoveSelect=49{
+	EnemyMoveSelect=0
+	if MostXM>600 and EnemyMove=1{EnemyMove=0:EnemyY=EnemyY+20:tmp=255:EnemyX=EnemyX+10}else:if MostXH<30{EnemyMove=1:EnemyY=EnemyY+20:tmp=255}
+	if tmp!=255 and EnemyMove=1{EnemyX=EnemyX+5}else{EnemyX=EnemyX-5} //tmp=255(移動)の時は位置移動しない
+}
+
+repeat length(Block)
+	if Block(cnt)>0{
+		boxf (20+cnt*130),350,(80+cnt*130),360
+		pos (70+cnt*130),370:mes str(Block(cnt))//HP
+	} //防衛ブロック
+loop
+
+color 255,255,255:boxf Player,400,Player+20,420:pos Player+5,420:mes str(HP)//自分
+
+color 0,255,255
+getkey tmp,39:if tmp and (Player<600){Player=Player+5}
+getkey tmp,37:if tmp and (Player>10){Player=Player-5}
+getkey tmp,32:if tmp and cnt\2=0 and Ball(0)=0{gosub *gun}//動き
+
+if Ball(0)=1{
+	Ball(2)=Ball(2)-15:boxf Ball(1),Ball(2),Ball(1)+2,Ball(2)+10//自分の玉
+	if Ball(2)<0{Ball(0)=0}
+}
+
+repeat length(EnemyGun_x)
+	boxf EnemyGun_x(cnt),EnemyGun_y(cnt),EnemyGun_x(cnt)+2,EnemyGun_y(cnt)+10
+	EnemyGun_y(cnt)=EnemyGun_y(cnt)+5
+	if Block(0)>0 and (20+0*130)<EnemyGun_x(cnt) and (80+0*130)>EnemyGun_x(cnt) and 350<EnemyGun_y(cnt) and 360>EnemyGun_y(cnt){Block(0)--:EnemyGun_x(cnt)=-1}
+	if Block(1)>0 and (20+1*130)<EnemyGun_x(cnt) and (80+1*130)>EnemyGun_x(cnt) and 350<EnemyGun_y(cnt) and 360>EnemyGun_y(cnt){Block(1)--:EnemyGun_x(cnt)=-1}
+	if Block(2)>0 and (20+2*130)<EnemyGun_x(cnt) and (80+2*130)>EnemyGun_x(cnt) and 350<EnemyGun_y(cnt) and 360>EnemyGun_y(cnt){Block(2)--:EnemyGun_x(cnt)=-1}
+	if Block(3)>0 and (20+3*130)<EnemyGun_x(cnt) and (80+3*130)>EnemyGun_x(cnt) and 350<EnemyGun_y(cnt) and 360>EnemyGun_y(cnt){Block(3)--:EnemyGun_x(cnt)=-1}
+	if Block(4)>0 and (20+4*130)<EnemyGun_x(cnt) and (80+4*130)>EnemyGun_x(cnt) and 350<EnemyGun_y(cnt) and 360>EnemyGun_y(cnt){Block(4)--:EnemyGun_x(cnt)=-1}//壁への判定
+	if Player-5<EnemyGun_x(cnt) and Player+25>EnemyGun_x(cnt) and 400<EnemyGun_y(cnt) and 440>EnemyGun_y(cnt){HP--:EnemyGun_x(cnt)=-1}//自分への判定
+loop
+
+if HP<1{dialog "死んだ":end}
+
+redraw 1
+if IsAnyEnemy=0{beep 523,2000:goto *Start}
+title Appname+"描画:"+str(cnt):await 16//FPS管理
+
+loop
+
+*gun
+Ball(0)=1
+Ball(1)=Player+10
+Ball(2)=400
+return
+
+*EnemyGuns
+	EnemyGun_x(length(EnemyGun_x))=EnemyX+cnt*50
+	EnemyGun_y(length(EnemyGun_y))=EnemyYtmp
+return

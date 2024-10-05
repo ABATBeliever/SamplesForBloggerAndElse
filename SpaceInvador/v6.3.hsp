@@ -1,0 +1,200 @@
+#include "kernel32.as"
+//v6.3
+/*
+敵の弾の発射起点が左上だから真ん中にするのだ
+最終的に表示するグラフィックに合わせる
+@Stick
+あとは自分の弾が盾に当たった場合でも盾にダメージがあるようにするのだ
+これで基本システムは完成ぽい
+盾は守りでもあるが邪魔でもある、これがインベーダーの面白いとこ
+ららこ ? 今日 14:00
+あとは自分の弾が盾に当たった場合でも盾にダメージがあるようにするのだ
+これで基本システムは完成ぽい
+盾は守りでもあるが邪魔でもある、これがインベーダーの面白いとこ
+オリジナルのギミックを加えるなら盾が爆発して近くにいるとダメージあるとか(
+いろいろ考えられるのだ
+たまに敵が爆発する何かを投げて来るとか
+あとはあれだ、UFOがいないんだな
+テレベーダーではぜんぶやっつけると最後にUFOだけで襲ってくるプチボス戦があった気がするな
+ららこ ? 今日 14:09
+消えたけど、盾が消えても当たり判定のこってるのだ
+基本システムできたね
+ABATBeliever【この鯖では語尾のら】 ? 今日 14:10
+わーい
+ららこ ? 今日 14:12
+細かい話だが、敵が全数いなくなったかの判定は毎フレームする必要はなくて
+敵を倒した直後だけでいいのではないか
+恐らく描画更新後にしたかったのだろうが
+ABATBeliever【この鯖では語尾のら】 ? 今日 14:13
+そうそう
+ららこ ? 今日 14:13
+細かいがこういうところは最適化なのだ
+ABATBeliever【この鯖では語尾のら】 ? 今日 14:14
+敵を倒したフラグも設ける?
+自キャラとかの描画は敵の後だから...
+ららこ ? 今日 14:14
+ららこさんならあらゆる判定の共通フラグをひとつ用意するかもしれない
+flag とかで
+で、何もイベントがないときは 0 にしておいて
+if flag {
+}
+で判定するのだ
+そしてイベントに番号をつけておく。それを見て判定する
+redraw 1
+if flag {
+    if flag=1 { }
+    if flag=2 { }
+    if flag=3 { }
+}
+こうしておけば flag=0 以外のときだけ発動するから最小限の判定で済む
+これは必須というわけではないが最適化のひとつの手法
+ららこ ? 今日 14:22
+または、描画ルーチンと計算・判定ルーチンを完全に分けるのだ
+全部命令や関数にしてメインルーチンからは呼ぶだけにするって方法もあるのだが
+呼んでreturnしてくるコストが増えるから細かいことを言うと少しオーバーヘッド増える
+*/
+screen 0,640,480
+AppName="Space Invaders"
+
+HP=5
+
+*Start
+Player=640/2
+repeat 5
+	Block(cnt)=5//防護壁のHP
+loop
+
+//12x4で48敵
+EnemyX=20
+EnemyY=20
+
+repeat 48
+	EnemyLive(cnt)=0
+loop
+
+randomize
+
+Byouga=0
+Ball(0)=0
+Ball(1)=Player+10
+Ball(2)=400
+font "",20
+EnemyMove=1//0:→ 1:←
+EnemyMoveSelect=0
+
+dim EnemyGun_x
+dim EnemyGun_y
+
+repeat
+redraw 0:Byouga++
+color 0,0,0:boxf
+color 255,255,255
+
+EnemyYtmp=EnemyY	//敵配置
+EnemyCount=0
+MostXM=0
+MostXH=640
+IsAnyEnemy=0
+IsKillEnemy=0
+repeat 4
+	repeat 12
+		if EnemyYtmp>350{dialog "しんだ":end}
+		if EnemyLive(EnemyCount)=0{
+			IsAnyEnemy=1
+			IsKillEnemy=1
+			if EnemyCount>(EnemyMoveSelect-1){//1コマずつ移動イベントの対象
+				boxf EnemyX+cnt*50,EnemyYtmp,EnemyX+cnt*50+20,EnemyYtmp+20
+				if EnemyX+cnt*50   >MostXM{MostXM=EnemyX+cnt*50}
+				if EnemyX+cnt*50+20<MostXH{MostXH=EnemyX+cnt*50+20}
+				if EnemyX+cnt*50<Ball(1) and EnemyX+cnt*50+20>Ball(1) and EnemyYtmp-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0:IsKillEnemy=0}
+				if rnd(10001)>9975{gosub *EnemyGuns}
+			}else{
+				if EnemyMove=0{//1コマずつ移動イベントの対象外 & 移動方向の分岐
+					boxf (EnemyX+cnt*50)-5,(EnemyYtmp),(EnemyX+cnt*50+20)-5,EnemyYtmp+20
+					if EnemyX+cnt*50-5 >MostXM{MostXM=EnemyX+cnt*50-5}
+					if EnemyX+cnt*50+15<MostXH{MostXH=EnemyX+cnt*50+15}
+					if (EnemyX+cnt*50)-5<Ball(1) and (EnemyX+cnt*50+20)-5>Ball(1) and (EnemyYtmp)-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0:IsKillEnemy=0}
+				}else{
+					boxf (EnemyX+cnt*50)+5,(EnemyYtmp),(EnemyX+cnt*50+20)+5,EnemyYtmp+20
+					if EnemyX+cnt*50+5 >MostXM{MostXM=EnemyX+cnt*50+5}
+					if EnemyX+cnt*50+25<MostXH{MostXH=EnemyX+cnt*50+25}
+					if (EnemyX+cnt*50)+5<Ball(1) and (EnemyX+cnt*50+20)+5>Ball(1) and (EnemyYtmp)-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0:IsKillEnemy=0}
+					}
+				}
+			}
+		EnemyCount++
+	loop
+	EnemyYtmp=EnemyYtmp+40
+loop
+
+color 0,255,0
+line MostXH,0,MostXH,480
+line MostXM,0,MostXM,480
+
+color 255,0,0
+line 30,0,30,480
+line 600,0,600,480
+
+color 0,0,255
+EnemyMoveSelect++
+
+tmp=0
+if EnemyMoveSelect=49{
+	EnemyMoveSelect=0
+	if MostXM>600 and EnemyMove=1{EnemyMove=0:EnemyY=EnemyY+20:tmp=255:EnemyX=EnemyX+10}else:if MostXH<30{EnemyMove=1:EnemyY=EnemyY+20:tmp=255}
+	if tmp!=255 and EnemyMove=1{EnemyX=EnemyX+5}else{EnemyX=EnemyX-5} //tmp=255(移動)の時は位置移動しない
+}
+
+repeat length(Block)
+	if Block(cnt)>0{
+		boxf (20+cnt*130),350,(80+cnt*130),360
+		pos (70+cnt*130),370:mes str(Block(cnt))//HP
+	} //防衛ブロック
+loop
+
+color 255,255,255:boxf Player,400,Player+20,420:pos Player+5,420:mes str(HP)//自分
+
+color 0,255,255
+getkey tmp,39:if tmp and (Player<600){Player=Player+5}
+getkey tmp,37:if tmp and (Player>10){Player=Player-5}
+stick tmp,0,1:if tmp=16 and Ball(0)=0{gosub *gun}//動き
+
+if Ball(0)=1{
+	Ball(2)=Ball(2)-15:boxf Ball(1),Ball(2),Ball(1)+2,Ball(2)+10//自分の玉
+	if Ball(2)<0{Ball(0)=0}
+	repeat 5
+		if (20+cnt*130)<Ball(1) and (80+cnt*130)>Ball(1)+2 and 350<Ball(2) and Block(cnt)>0{Ball(0)=0:Block(cnt)--}//防護壁の自己破壊
+	loop
+}
+
+repeat length(EnemyGun_x)
+	boxf EnemyGun_x(cnt),EnemyGun_y(cnt),EnemyGun_x(cnt)+2,EnemyGun_y(cnt)+10
+	EnemyGun_y(cnt)=EnemyGun_y(cnt)+5
+	if Block(0)>0 and (20+0*130)<EnemyGun_x(cnt) and (80+0*130)>EnemyGun_x(cnt) and 350<EnemyGun_y(cnt) and 360>EnemyGun_y(cnt){Block(0)--:EnemyGun_x(cnt)=-1}
+	if Block(1)>0 and (20+1*130)<EnemyGun_x(cnt) and (80+1*130)>EnemyGun_x(cnt) and 350<EnemyGun_y(cnt) and 360>EnemyGun_y(cnt){Block(1)--:EnemyGun_x(cnt)=-1}
+	if Block(2)>0 and (20+2*130)<EnemyGun_x(cnt) and (80+2*130)>EnemyGun_x(cnt) and 350<EnemyGun_y(cnt) and 360>EnemyGun_y(cnt){Block(2)--:EnemyGun_x(cnt)=-1}
+	if Block(3)>0 and (20+3*130)<EnemyGun_x(cnt) and (80+3*130)>EnemyGun_x(cnt) and 350<EnemyGun_y(cnt) and 360>EnemyGun_y(cnt){Block(3)--:EnemyGun_x(cnt)=-1}
+	if Block(4)>0 and (20+4*130)<EnemyGun_x(cnt) and (80+4*130)>EnemyGun_x(cnt) and 350<EnemyGun_y(cnt) and 360>EnemyGun_y(cnt){Block(4)--:EnemyGun_x(cnt)=-1}//壁への判定
+	if Player-5<EnemyGun_x(cnt) and Player+25>EnemyGun_x(cnt) and 400<EnemyGun_y(cnt) and 440>EnemyGun_y(cnt){
+		HP--:EnemyGun_x(cnt)=-1
+		if HP<1{redraw 1:dialog "死んだ":end}//自分への判定
+	}
+loop
+
+if IsKillEnemy=0 and IsAnyEnemy=0{redraw 1:beep 523,2000:goto *Start}
+
+redraw 1
+title Appname+"描画:"+str(cnt):await 16//FPS管理
+
+loop
+
+*gun
+Ball(0)=1
+Ball(1)=Player+10
+Ball(2)=400
+return
+
+*EnemyGuns
+	EnemyGun_x(length(EnemyGun_x))=EnemyX+cnt*50+10
+	EnemyGun_y(length(EnemyGun_y))=EnemyYtmp
+return

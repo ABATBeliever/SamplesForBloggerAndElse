@@ -1,0 +1,113 @@
+//v2
+/*
+敵は1個ずつ移動でええんやで
+そして左右のある点まできたら折り返しフラグを立てる
+これは1体で作っておいて座標ずらしで配置するだけでできる
+ABATBeliever【この鯖では語尾のら】 ? 今日 21:59
+座標ずらしとは
+ららこ ? 今日 21:59
+配列にする前に1体で完成させるのだ
+ABATBeliever【この鯖では語尾のら】 ? 今日 21:59
+それだとどれがやられたかわかんなくない?
+ららこ ? 今日 21:59
+まず1体で、左右どちらかに移動を開始する画面端まできたら下に1ライン降りてきて反対の方向に移動を始める、以後同じ
+ABATBeliever【この鯖では語尾のら】 ? 今日 22:00
+そういう挙動だったのかあれ
+ららこ ? 今日 22:00
+そして反転フラグは全オブジェクト共通にする
+ABATBeliever【この鯖では語尾のら】 ? 今日 22:00
+左右に動くとは知らなかった
+ららこ ? 今日 22:00
+あとは開始時点でX座標とY座標をずらして沢山配置するだけではないか
+Y座標がある時点まで降りてきたらゲームオーバー 
+配列にしてしまえばどれかは配列番号で判定できるではないか
+ABATBeliever【この鯖では語尾のら】 ? 今日 22:03
+因みに、redraw使ってたのにちらつくのは何で
+mesが遅い?
+ららこ ? 今日 22:04
+redraw 0 の位置がおかしい。repeat の直後に入れるべき
+それとループ中に font はできれば避ける
+ABATBeliever【この鯖では語尾のら】 ? 今日 22:05
+画像素材が作れないから文字でやってた()
+ららこ ? 今日 22:05
+boxfのがいいなこういうのは
+むかしポケコンで作ったときは A とかが敵だったりした
+なんでもいいのよ
+オリジナルに似せるなら敵は1オブジェクトずつ移動だな
+1フレームで1個までしか移動しないのだ
+るかか ? 今日 22:07
+ポケコンとかなつかしい
+Ronto_255 ? 今日 22:11
+細かく寄せる必要はないんでない？
+*/
+screen 0,640,480
+AppName="Space Invaders"
+
+Player(0)=5
+Player(1)=640/2
+Player(2)=400
+
+repeat 5
+	Block(cnt)=1
+loop
+
+//12x4で48敵
+EnemyX=20
+EnemyY=20
+EnemyLive( 0)=0//0は生存
+EnemyLive(47)=0
+
+Byouga=0
+Ball(0)=0
+Ball(1)=Player(1)+10
+Ball(2)=Player(2)
+font "",40
+EnemyMove=1//0:→ 1:←
+
+repeat
+redraw 0:Byouga++
+color 0,0,0:boxf
+color 255,255,255
+
+EnemyYtmp=EnemyY	//敵配置
+EnemyCount=0
+repeat 4
+	repeat 12
+		if EnemyYtmp>350{dialog "しんだ":end}
+		if EnemyLive(EnemyCount)=0{boxf EnemyX+cnt*50,EnemyYtmp,EnemyX+cnt*50+20,EnemyYtmp+20}
+		EnemyCount++
+	loop
+	EnemyYtmp=EnemyYtmp+40
+loop
+if EnemyMove=1{EnemyX++}else{EnemyX--}
+if EnemyX>60{EnemyMove=0:EnemyY=EnemyY+5}
+if EnemyX<00{EnemyMove=1:EnemyY=EnemyY+5}
+
+repeat length(Block)
+	if Block(cnt)=1{boxf (20+cnt*130),350,(80+cnt*130),360} //ブロック
+loop
+
+pos Player(1),Player(2):mes "自"//自分
+
+getkey tmp,39:if tmp and (Player(1)<600){Player(1)=Player(1)+Player(0)}
+getkey tmp,37:if tmp and (Player(1)>10){Player(1)=Player(1)-Player(0)}
+getkey tmp,32:if tmp and cnt\2=0 and Ball(0)=0{gosub *gun}//動きと弾の描画
+
+
+
+if Ball(0)=1{
+	Ball(2)=Ball(2)-40:pos Ball(1),Ball(2):mes "|"
+	if Ball(2)<0{Ball(0)=0}
+}
+
+redraw 1
+title Appname+"描画:"+str(cnt):await 32//FPS管理
+
+
+loop
+
+*gun
+Ball(0)=1
+Ball(1)=Player(1)+10
+Ball(2)=Player(2)
+return

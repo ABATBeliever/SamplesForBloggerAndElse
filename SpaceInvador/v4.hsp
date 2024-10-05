@@ -1,0 +1,128 @@
+//v4
+/*
+よくなったのだ。あとは敵が消えた場合は消えた分も考えて折り返すのだ
+端っこのほうのオブジェクトがいないのであればそこはスルーして判定しなければならない
+ABATBeliever【この鯖では語尾のら】 ? 今日 22:58
+スパゲティすぎてはきそう
+画像
+描画の時に「最も→」「最も←」を追加するか
+ららこ ? 今日 22:59
+とりあえずプレイヤーの座標が配列なのはまあまあ意味不明なのだ
+構造体的な考え方でこうしてるのかな?
+でもこれだとindexを見なくてはいけないぶん余計な処理がかかるんよ
+自機は1個しかいないので配列は不要だとおもうのだ
+それこそ自機のYは固定なんだから変数すら不要だが
+ららこ ? 今日 23:07
+インベーダーって日本ではじめてCPUを使ったゲームだったのかー
+効果音はハードウェアで固定なのはハードだけでやってた時代の名残だな
+このへんはナムコが一歩先をいってた感じがする
+ABATBeliever【この鯖では語尾のら】 ? 今日 23:10
+（＾ω＾ ≡ ＾ω＾）おっおっおっ 
+自機については今直す 
+あやべ
+ららこ ? 今日 23:11
+インベーダーが一段下がるときはXは移動しないんよ 
+ららこさんのさっきのサンプルみて
+*/
+screen 0,640,480
+AppName="Space Invaders"
+
+Player=640/2
+
+repeat 5
+	Block(cnt)=1
+loop
+
+//12x4で48敵
+EnemyX=20
+EnemyY=20
+EnemyLive( 0)=0//0は生存
+EnemyLive(47)=0
+
+Byouga=0
+Ball(0)=0
+Ball(1)=Player+10
+Ball(2)=400
+font "",40
+EnemyMove=1//0:→ 1:←
+EnemyMoveSelect=0
+
+repeat
+redraw 0:Byouga++
+color 0,0,0:boxf
+color 255,255,255
+
+EnemyYtmp=EnemyY	//敵配置
+EnemyCount=0
+MostXM=0
+MostXH=640
+repeat 4
+	repeat 12
+		if EnemyYtmp>350{dialog "しんだ":end}
+		if EnemyLive(EnemyCount)=0{
+			if EnemyCount>(EnemyMoveSelect-1){boxf EnemyX+cnt*50,EnemyYtmp,EnemyX+cnt*50+20,EnemyYtmp+20
+												if EnemyX+cnt*50   >MostXM{MostXM=EnemyX+cnt*50}
+												if EnemyX+cnt*50+20<MostXH{MostXH=EnemyX+cnt*50+20}
+												if EnemyX+cnt*50<Ball(1) and EnemyX+cnt*50+20>Ball(1) and EnemyYtmp-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0}
+			}else{
+			if EnemyMove=0{boxf (EnemyX+cnt*50)-5,(EnemyYtmp),(EnemyX+cnt*50+20)-5,EnemyYtmp+20
+							if EnemyX+cnt*50-5 >MostXM{MostXM=EnemyX+cnt*50-5}
+							if EnemyX+cnt*50+15<MostXH{MostXH=EnemyX+cnt*50+15}
+							if (EnemyX+cnt*50)-5<Ball(1) and (EnemyX+cnt*50+20)-5>Ball(1) and (EnemyYtmp)-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0}
+				}else{
+			boxf (EnemyX+cnt*50)+5,(EnemyYtmp),(EnemyX+cnt*50+20)+5,EnemyYtmp+20}
+			if EnemyX+cnt*50+5 >MostXM{MostXM=EnemyX+cnt*50+5}
+			if EnemyX+cnt*50+25<MostXH{MostXH=EnemyX+cnt*50+25}
+			if (EnemyX+cnt*50)+5<Ball(1) and (EnemyX+cnt*50+20)+5>Ball(1) and (EnemyYtmp)-20<Ball(2) and EnemyYtmp+40>Ball(2){EnemyLive(EnemyCount)=1:Ball(0)=0}
+			}
+		}
+		EnemyCount++
+	loop
+	EnemyYtmp=EnemyYtmp+40
+loop
+
+color 0,255,0
+line MostXH,0,MostXH,480
+line MostXM,0,MostXM,480
+
+color 255,0,0
+line 30,0,30,480
+line 600,0,600,480
+
+color 0,0,255
+EnemyMoveSelect++
+
+tmp=0
+if EnemyMoveSelect=49{
+	EnemyMoveSelect=0
+	if MostXM>600 and EnemyMove=1{EnemyMove=0:EnemyY=EnemyY+7:tmp=255:EnemyX=EnemyX+10}else:if MostXH<30{EnemyMove=1:EnemyY=EnemyY+7:tmp=255}
+	if tmp!=255 and EnemyMove=1{EnemyX=EnemyX+5}else{EnemyX=EnemyX-5} //tmp=255(移動)の時は位置移動しない
+	}
+
+repeat length(Block)
+	if Block(cnt)=1{boxf (20+cnt*130),350,(80+cnt*130),360} //ブロック
+loop
+
+color 255,255,255:pos Player,400:mes "自"//自分
+
+getkey tmp,39:if tmp and (Player<600){Player=Player+5}
+getkey tmp,37:if tmp and (Player>10){Player=Player-5}
+getkey tmp,32:if tmp and cnt\2=0 and Ball(0)=0{gosub *gun}//動きと弾の描画
+
+
+if Ball(0)=1{
+	Ball(2)=Ball(2)-50:boxf Ball(1),Ball(2),Ball(1)+2,Ball(2)+10
+	if Ball(2)<0{Ball(0)=0}
+}
+
+redraw 1
+title Appname+"描画:"+str(cnt):await 16//FPS管理
+
+
+loop
+
+*gun
+Ball(0)=1
+Ball(1)=Player+10
+Ball(2)=400
+return
