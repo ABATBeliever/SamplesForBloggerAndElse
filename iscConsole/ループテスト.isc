@@ -1,0 +1,3 @@
+define 無限ループのテスト defineを一番上に書くことでこのように表示できます ABATBeliever 1
+memo defineとmemoは無視される。jump1とは「HSPの1行目」に移動する
+jump 1

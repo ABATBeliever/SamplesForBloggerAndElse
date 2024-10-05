@@ -1,0 +1,27 @@
+#include "Loadini.hsp"
+Loadini "target.ini" //ロード
+
+mes "Loadini.hsp の動作確認"
+mes "[target.ini]をロードし、その後に[Sonzaisinai.ini]をロードします。"
+mes "[Sonzaisinai.ini]は存在しないため、エラーダイアログを出します"
+mes "\n==================================================================="
+mes "*Loadini \"hogehoge.ini\" - 「hoghoge.ini」をロードする命令"
+mes "*getNini(n)             - n行目の中身を代入"
+mes "*getSini(\"hogehoge\")    - 「hogehoge」の項の中身を代入\n"
+mes "※今回は、分かりやすいように文末に「.」を付けています"
+mes "===================================================================\n"
+
+mes "0行目            :"+getNini(0)+"."	//0番を代入
+mes "項目「a」(更新後):"+getSini("a")+"."	//「a」という項目の中身を代入
+mes "項目「b」(普通)  :"+getSini("b")+"."	//普通のデータ
+mes "項目「c」(=過多) :"+getSini("c")+"."	//イコールが多すぎる
+mes "項目「d」(=不足) :"+getSini("d")+"."	//イコールがない(題名のみ)
+mes "不存在名前参照   :"+getSini("e")+"."	//存在しない参照(名前指定)
+mes "不存在行数参照   :"+getNini(999)+"."	//存在しない参照(番号指定)
+
+Loadini "Sonzaisinai.ini"	//存在しないini参照
+
+mes "\niniロード時に既存項目は破棄される(0行目) :"+getNini(0)+"."
+
+mes "おわり。"
+stop

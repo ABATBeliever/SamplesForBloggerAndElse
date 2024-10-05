@@ -1,0 +1,38 @@
+define サンプル3 このように、先頭にdefine命令を書くことで内容を実行前にメモでき、バージョン管理もできます ABATBeliever 1
+
+memo メモ命令は常に無視されます
+define 先頭以外のdefineも無視されます
+
+select select命令 select命令は自由な分岐を実装できますが、choiceより遅いです どれか押してみてください jump命令とは,jumpto命令とは,openwnd命令とは,ほかの命令,終了
+
+if select=1{
+popup iscを見ればわかるように、jump命令は指定した番地にジャンプします。一行目が0番地となります。
+popup 今から先頭に飛びます
+jump 0
+}
+
+if select=2{
+popup iscを見ればわかるように、jumpto命令はあらかじめ指定しておいた番地にジャンプします。詳しくは「スタートポップアップ.isc」
+}
+
+if select=3{
+popup openwnd命令はWebViewに指定したサイトを開かせます。
+openwnd https://www.google.com
+popup ね?
+}
+
+if select=4{
+popup その他の命令～「change_st」はブラウザの下のバーの文字列を変更できますが、すぐ戻ってしまうのであまり意味はありません。 ちな、次でちょっと変えてみます
+change_st （ ＾ω＾）おっつ
+popup その他の命令～「capturewnd」はキャプチャ画面を開かせます。
+capturewnd
+}
+
+if select=5{
+close
+}
+
+popup if分岐はこういう仕様でした。「select」と「choice」は競合するため、「select」の後に「choice」命令を使うとselect分岐はできません。
+popup おまけ、誤字のコマンドを読み込むとこうなります↓
+MachiGattaCommandSample
+close

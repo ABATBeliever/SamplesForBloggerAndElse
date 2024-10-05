@@ -1,0 +1,25 @@
+define スタートアップポップアップのサンプル にゃー ABATBeliever 1
+popup シンプルなスタートアップのサンプルです
+popup ちなみに、実行ウィンドウにある「Trust Script」とは、解釈の仕様をさします。チェックを入れない場合gosubで処理され、WebViewと隔離した安全な実行がされますが、128回目のコマンド読み込み時に停止されます。チェックを入れた場合はgotoで処理され、より高速に動作しますが、悪意あるコードだと問題が発生することがあります。gotoだと128行目以降でも続行を選択できます(ループ対策のためポップアップは消されません)
+
+point loop
+
+select シンプルなスタートアップのサンプル これはサンプルコードです 押してみてください Google,Youtube,Github,ベースコード,終了
+
+if select=1{
+openwnd https://www.google.com
+}
+if select=2{
+openwnd https://www.youtube.com
+}
+if select=3{
+openwnd https://www.github.com
+}
+if select=4{
+openwnd https://blog.goo.ne.jp/hiro239415/e/5041aec497e02427c2b123aef07977e3
+}
+if select=5{
+close
+}
+
+jumpto loop

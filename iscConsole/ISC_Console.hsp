@@ -1,0 +1,255 @@
+AppName="ISC-Console"
+#include "user32.as"
+#include "kernel32.as"
+#define ERROR_ALREADY_EXISTS $B7
+screen 0,400,200
+title AppName
+
+winobj "msctls_progress32", "", , $50000000, 400, 20
+hProgress = objinfo(stat, 2)
+message=""+AppName+" を起動中\nLicensed by ABATBeliever\n\n領域を確保中":mesbox message,400,180,6
+CreateMutex 0, 0, AppName
+GetLastError
+if stat = ERROR_ALREADY_EXISTS {sendmsg hProgress, $402, 1:objprm 1,"多重起動していませんか?\n\ntaskkill /f /im **.exe":MessageBeep $30:stop}
+repeat 10
+	sendmsg hProgress, $402, cnt+1
+//	await 30*cnt
+loop
+message=message+"[OK]\n定義をロード中":objprm 1,message
+repeat 80
+	sendmsg hProgress, $402, cnt+10
+//	await (rnd((cnt+1)*5)+1)
+loop
+
+message=message+"[OK]\nGUI/最終処理":objprm 1,message//:await 3000
+
+clrobj:screen 0,900,820,0,(ginfo_dispx-900)/2,(ginfo_dispy-820)/2
+hmain=hwnd
+
+message="準備完了":pos 0,0:mesbox message,300,40,0
+
+objsize 80,40:button gosub "データをロード",*loadf
+pos 80,40:FilePathL="準備中":mesbox FilePathL,220,40,0
+
+pos 0,80:objsize 80,40:button gosub "セーブ先を指定",*savef
+pos 80,80:FilePathS="準備中":mesbox FilePathS,220,40,0
+
+objsize 100,30
+pos 0,120:button gosub "保存を実行",*saver
+pos 100,120:button gosub "変数系の初期化",*init
+pos 200,120:button "ISCｽｸﾘﾌﾟﾄの実行",*runs
+pos 0,150:message="ログがここに記入されます":mesbox message,300,250,6
+
+sdim Sourse,65535:pos 0,400:Sourse="":mesbox Sourse,900,420,65535
+gosub *init
+stop
+
+*loadf
+	gosub *init
+	dialog "isc",16,""
+	if stat=0{return}
+	objprm 2,refstr
+	noteload refstr
+	EnableWindow hmain, 0
+	screen 1,300,60,0,(ginfo_dispx-300)/2,(ginfo_dispy-60)/2
+	syscolor:boxf:color 0,0,0
+	title "ロード中: "+refstr
+	tmp="":mesbox tmp,300,20
+	mes "・文字は65535文字が限界です\n・ロードが終わるまでお待ちください"
+	gsel 1,2
+	sdim Sourse,65535
+	repeat notemax
+		noteget tmp,cnt
+		Sourse=Sourse+"\n"+tmp
+		objprm 0,"ロード中: "+str(cnt)+"/"+str(notemax)
+		now=(1.0*(cnt+1)/notemax)*100:now=strf("%u",now):title str(now)+"% OK"
+		if cnt\5=0{await 1}
+	loop
+	gsel 1,-1:gsel 0:EnableWindow hmain, 1
+	objprm 9,Sourse
+	return
+*savef
+	dialog "isc",17,""
+	if stat=0{return}
+	objprm 4,refstr
+	SavePath=refstr
+	return
+*saver
+	if SavePath="NO"{dialog "セーブ先が指定されていません":gosub *savef:return}
+	dialog "ソースコードをセーブしますか?\n\n"+SavePath,2
+	if stat=6{bsave SavePath,Sourse:dialog "OK"}
+	return
+*init
+	buffers="":objprm 2,"...":objprm 4,"...":objprm 8,"ログがここに記入されます":objprm 9,"":SavePath="NO":sdim Sourse,65535
+	notesel buffers
+	randomize
+	return
+*runs
+dialog "実行します"
+IScriptCommonFlags="N"//フラグ破棄
+IScriptChoice="6"//選択は最初は「Y」判定とする
+IScriptWatchDog=0
+IScript_loadint=0
+IScriptLimit=(notemax+1)
+IScriptTrustImput=1
+IScriptTrust=1
+goto *IScript_InterPreter
+
+
+*IScript_InterPreter
+if IScriptCommonFlags="stop"{dialog "Stopped.":if IScriptTrust=1{stop}else{return}}
+if IScriptCommonFlags="close"{dialog "Successfully terminated [Close].\n正常に終了されました[Close]命令\n\nReturnValue 返り値:0\nFinal Register 最終レジスタ:"+IScript_loadint+"/"+IScriptLimit:IScript_Running=0:ISCommonFlags="":if IScriptTrust=1{stop}else{return}}
+if (IScriptWatchDog\128)=0 & IScriptWatchDog!=0{//WatchDog分岐
+	if IScriptTrust=0{dialog "IscriptWatchDogTimeOut[128/128]",1,"IScript Anti Crash Serv.":IScript_Running=0:return}//gosub
+	dialog "IScriptWatchDogTimeOut["+IScriptWatchDog+"]",3,"IScript Anti Crash Serv."//goto
+	if stat=6{IScript_Running=0:stop}
+	}
+	
+IScriptWatchDog=IScriptWatchDog+1//カウント
+if int(IScript_loadint) > int(IScriptLimit) {
+	dialog "Successfully terminated [Complete].\n正常に終了されました[完走]\n\nReturnValue 返り値:0\nFinal Register 最終レジスタ:"+IScript_loadint+"/"+IScriptLimit
+	IScript_Running=0
+	if IScriptTrust=1{stop}else{return}
+	}
+	
+notesel Sourse
+noteget IScriptSTR,IScript_loadint
+split IScriptSTR, " ", IScriptSplit
+
+		if IScriptSplit(0) = "}" {IScriptCommonFlags="N"}//「}」命令
+		if IScriptCommonFlags="N"{//選択は有効か
+	
+			switch IScriptSplit(0)
+				case "point":swbreak//jumptoコマンドの移動先。普段は無視
+				
+				case "define":swbreak//定義。常に無視
+				
+				case "memo":swbreak//メモ用。常に無視
+
+				case "popup"		
+					if stat>1{dialog strmid(IScriptSTR, 6, 1024),0,"IScript: "+IScriptPath}
+					swbreak
+				
+				case "choice"//選択肢付きdialogコマンドに相当。はい、いいえの値が「IScriptChoice」に保存され、ifコマンドで使用される。
+					if stat>1{dialog strmid(IScriptSTR, 6, 1024),2,"IScript: "+IScriptPath : IScriptChoice=stat}
+					swbreak
+					
+				case "openwnd"
+					if stat!=2{swbreak}
+					dialog "本来はこのリンクを開きます\n\n"+IScriptSplit(1)
+					swbreak
+				
+				case "if"//if分岐。最後の「choice」コマンドの選択肢で分岐される。あっていない場合、「IScriptCommonFlags」が有効になりコマンドを実行しない。「}」コマンドで初期化
+					if stat!=2{swbreak}
+					if IScriptSplit(1)="choice=Y{" {
+						if IScriptChoice!="6"{IScriptCommonFlags="Y"}
+						}
+					if IScriptSplit(1)="choice=N{" {
+						if IScriptChoice!="7"{IScriptCommonFlags="Y"}
+					}
+					if IScriptSplit(1)="select=1{" {
+						if IScriptChoice!="1"{IScriptCommonFlags="Y"}
+					}
+					if IScriptSplit(1)="select=2{" {
+						if IScriptChoice!="2"{IScriptCommonFlags="Y"}
+					}
+					if IScriptSplit(1)="select=3{" {
+						if IScriptChoice!="3"{IScriptCommonFlags="Y"}
+					}
+					if IScriptSplit(1)="select=4{" {
+						if IScriptChoice!="4"{IScriptCommonFlags="Y"}
+					}
+					if IScriptSplit(1)="select=5{" {
+						if IScriptChoice!="5"{IScriptCommonFlags="Y"}
+					}
+					if IScriptSplit(1)="select=0{" {
+						if IScriptChoice!="0"{IScriptCommonFlags="Y"}
+					}
+					swbreak
+
+				case "select"
+					if stat != 5{dialog "The ERR 'select' "+stat:swbreak}
+					split IScriptSplit(4), ",", IScriptTMP
+					if stat < 2{dialog "The ERR 'select'\nLow Selects,"+stat+"\n"+IScriptTMP:swbreak}//2未満
+					if stat > 9{dialog "The ERR 'select'\nToo many Selects,"+stat+IScriptTMP:swbreak}//10以上
+					dwFlags = 0
+					dwFlags = TDF_ALLOW_DIALOG_CANCELLATION
+					switch stat
+						case 2:DialogVistaEx str(IScriptSplit(1)),str(IScriptSplit(2)),str(IScriptSplit(3)),"",str(IScriptTMP(0))+"\n"+str(IScriptTMP(1)), 3, 4:swbreak
+						case 3:DialogVistaEx str(IScriptSplit(1)),str(IScriptSplit(2)),str(IScriptSplit(3)),"",str(IScriptTMP(0))+"\n"+str(IScriptTMP(1))+"\n"+str(IScriptTMP(2)), 3, 4:swbreak
+						case 4:DialogVistaEx str(IScriptSplit(1)),str(IScriptSplit(2)),str(IScriptSplit(3)),"",str(IScriptTMP(0))+"\n"+str(IScriptTMP(1))+"\n"+str(IScriptTMP(2))+"\n"+str(IScriptTMP(3)), 3, 4:swbreak
+						case 5:DialogVistaEx str(IScriptSplit(1)),str(IScriptSplit(2)),str(IScriptSplit(3)),"",str(IScriptTMP(0))+"\n"+str(IScriptTMP(1))+"\n"+str(IScriptTMP(2))+"\n"+str(IScriptTMP(3))+"\n"+str(IScriptTMP(4)), 3, 4:swbreak
+						case 6:DialogVistaEx str(IScriptSplit(1)),str(IScriptSplit(2)),str(IScriptSplit(3)),"",str(IScriptTMP(0))+"\n"+str(IScriptTMP(1))+"\n"+str(IScriptTMP(2))+"\n"+str(IScriptTMP(3))+"\n"+str(IScriptTMP(4))+"\n"+str(IScriptTMP(5)), 3, 4:swbreak
+						case 7:DialogVistaEx str(IScriptSplit(1)),str(IScriptSplit(2)),str(IScriptSplit(3)),"",str(IScriptTMP(0))+"\n"+str(IScriptTMP(1))+"\n"+str(IScriptTMP(2))+"\n"+str(IScriptTMP(3))+"\n"+str(IScriptTMP(4))+"\n"+str(IScriptTMP(5))+"\n"+str(IScriptTMP(6)), 3, 4:swbreak
+						case 8:DialogVistaEx str(IScriptSplit(1)),str(IScriptSplit(2)),str(IScriptSplit(3)),"",str(IScriptTMP(0))+"\n"+str(IScriptTMP(1))+"\n"+str(IScriptTMP(2))+"\n"+str(IScriptTMP(3))+"\n"+str(IScriptTMP(4))+"\n"+str(IScriptTMP(5))+"\n"+str(IScriptTMP(6))+"\n"+str(IScriptTMP(7)), 3, 4:swbreak
+						case 9:DialogVistaEx str(IScriptSplit(1)),str(IScriptSplit(2)),str(IScriptSplit(3)),"",str(IScriptTMP(0))+"\n"+str(IScriptTMP(1))+"\n"+str(IScriptTMP(2))+"\n"+str(IScriptTMP(3))+"\n"+str(IScriptTMP(4))+"\n"+str(IScriptTMP(5))+"\n"+str(IScriptTMP(6))+"\n"+str(IScriptTMP(7))+"\n"+str(IScriptTMP(8)), 3, 4:swbreak
+					swend
+					if stat = 0 {IScriptChoice="0" : swbreak}
+					if stat = 1 {IScriptChoice="1" : swbreak}
+					if stat = 2 {IScriptChoice="2" : swbreak}
+				    if stat = 3 {IScriptChoice="3" : swbreak}
+					if stat = 4 {IScriptChoice="4" : swbreak}
+					if stat = 5 {IScriptChoice="5" : swbreak}
+					if stat = 6 {IScriptChoice="6" : swbreak}
+					if stat = 7 {IScriptChoice="7" : swbreak}
+					if stat = 8 {IScriptChoice="8" : swbreak}
+					if stat = 9 {IScriptChoice="9" : swbreak}
+					dialog "Fatal ERR(select) "+stat
+					swbreak
+
+				case "jump"//ジャンプしまーす
+					if stat!=2{dialog "The ERR 'jump'\n"+stat:swbreak}
+					if int(IScriptSplit(1)) > int(notemax+1) {dialog "The ERR 'jump'\nRequest Register:"+str(IScriptSplit(1))+"\nValid Last Address:"+str(notemax+1):swbreak}
+					if IScript_Trust = "1"{IScript_loadint = int(int(IScriptSplit(1))-2):swbreak}
+					IScript_loadint = int(int(IScriptSplit(1))-2)
+					swbreak
+					
+				case "close" : IScriptCommonFlags="close":swbreak
+				
+				case "change_st"
+					if stat != 2{swbreak}
+					dialog "本来はstbarが以下になります\n\n"+IScriptSplit(1)
+				swbreak
+				
+				case "opentuwnd"
+					if stat != 2{swbreak}
+					dialog "本来は以下のページが開かれます\n\n"+VARIABLE_CONF_URL_TRANSLATE+IScriptSplit(1)
+				swbreak
+				
+				case "capturewnd"
+					dialog "ここで画面キャプチャが入ります"
+				swbreak
+
+				case "jumpto"//ジャンプしまーす
+					if stat!=2{dialog "The ERR 'JumpTo'":swbreak}
+					repeat notemax
+						noteget IScriptJumpSTR,cnt
+						split IScriptJumpSTR, " ", IScriptJumpSpilit
+						if IScriptJumpSpilit(0) = "point"{
+							if stat=2{
+								if str(IScriptSplit(1))=str(IScriptJumpSpilit(1)) {IScript_loadint = int(cnt-1):swbreak}//まとめるとpoint命令しかなかった場合配列が破綻
+								}
+						}
+					loop
+					dialog "The ERR 'JumpTo', Not found"
+					swbreak
+				
+				case "" : swbreak//空行は無視
+			
+			default
+				if IScriptSplit(0) != "}"{dialog "Err at "+str(IScript_loadint+1)+"\n\n'"+IScriptSTR+"' ("+str(stat-1)+")\n\n"+IScriptSTR}
+				swbreak
+			swend
+	}
+IScript_loadint=IScript_loadint+1
+goto *IScript_InterPreter
+stop
+
+*IScript_END
+if IScript_Running!=0{
+	dialog "Currently running.\nDo you want to force stop?\n\n現在実行中です強制停止しますか?",3,"IScript"
+	if stat=6{ISCommonFlags="stop":dialog "Script force stop flagged.\nThe following commands will not be executed.\n\nスクリプト実行停止フラグを立てました。\nコマンドは実行されません",1,"":IScript_Running=0:return}
+}
+stop
+
+#include "modTaskDialog.hsp"
