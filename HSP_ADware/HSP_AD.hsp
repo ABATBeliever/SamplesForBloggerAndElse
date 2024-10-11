@@ -1,0 +1,25 @@
+#include "hsp3utf.as"
+#include "hspinet.as"
+HSPSelfConnect_init//o—ˆ‚é‚¾‚¯ã‚É
+
+//LŽæ“¾
+GetAD=getData("https://meta.abatbeliever.net/hsp_ad_sample2.txt")
+dialog GetAD
+split GetAD,",",GetAD
+
+repeat length(GetAD)
+	tmp=GetAD(cnt)
+	if instr(tmp,0,"[EOF]")=0{break}
+	split tmp,"*",tmp
+	AdList(cnt)=tmp(0):AdURL(cnt)=tmp(1)
+loop
+
+mes "s”:"+length(GetAD)
+
+repeat length(ADList)
+	mes "L"+str(cnt)+"> "+AdList(cnt)
+	mes "[URL]> "+AdURL(cnt)+"\n"
+loop
+stop
+
+#include "HSC.hsp"
