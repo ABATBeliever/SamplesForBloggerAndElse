@@ -1,0 +1,63 @@
+count=0:score=0
+randomize
+NotesReset
+*main
+	redraw 0
+	title "notes"
+	GraphicReset
+	pos 260,00:mes "Count: "+str(strf("%07d",count))
+	pos 260,20:mes "Score: "+str(strf("%07d",score))
+	NotesDo
+	KeyDo
+
+	redraw 1
+	await 2:count++
+
+goto *main
+
+#deffunc GraphicReset
+	color 000,000,000:boxf
+	color 255,128,128:boxf 080,000,160,480
+	color 255,255,128:boxf 160,000,240,480
+	color 128,255,128:boxf 240,000,320,480
+	color 000,255,216:boxf 320,000,400,480
+	color 128,255,255:boxf 400,000,480,480
+	color 255,128,255:boxf 480,000,560,480
+	color 255,000,000:boxf 080,370,560,400
+	color 000,000,000
+	pos 115,350:mes "Q"
+	pos 195,350:mes "W"
+	pos 275,350:mes "E"
+	pos 355,350:mes "Y"
+	pos 435,350:mes "U"
+	pos 515,350:mes "I"
+return
+
+#deffunc NotesReset
+	repeat 6
+		posiy(cnt)=0
+		posiw(cnt)=rnd(1000)
+	loop
+return
+
+#deffunc NotesDo
+	repeat 6
+		if posiw(cnt)=0{
+			pos 80*(cnt+1),posiy(cnt):mes "**********":posiy(cnt)++
+		}else{
+			posiw(cnt)--
+		}
+		if posiy(cnt)>480{
+			posiy(cnt)=0:posiw(cnt)=rnd(1000)
+		}
+	loop
+return
+
+#deffunc KeyDo
+	getkey t,'Q':if t and posiy(0)>370 and posiy(0)<400 {score++ : posiy(0)=480}
+	getkey t,'W':if t and posiy(1)>370 and posiy(1)<400 {score++ : posiy(1)=480}
+	getkey t,'E':if t and posiy(2)>370 and posiy(2)<400 {score++ : posiy(2)=480}
+	getkey t,'Y':if t and posiy(3)>370 and posiy(3)<400 {score++ : posiy(3)=480}
+	getkey t,'U':if t and posiy(4)>370 and posiy(4)<400 {score++ : posiy(4)=480}
+	getkey t,'I':if t and posiy(5)>370 and posiy(5)<400 {score++ : posiy(5)=480}
+return
